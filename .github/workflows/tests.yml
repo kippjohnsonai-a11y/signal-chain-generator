@@ -28,3 +28,22 @@ jobs:
         run: uv run --locked --extra dev ruff check stompxl
       - name: Test
         run: uv run --locked --extra dev pytest -q
+
+  # Build the Mac app unsigned and check that its bundled uv can run a release.
+  mac-app:
+    runs-on: macos-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Build
+        run: bash scripts/build-mac-app.sh 0.1.0
+      - name: Check the bundle
+        run: |
+          app="dist/macos/Signal Chain Generator.app"
+          lipo -archs "$app/Contents/MacOS/uv"
+          lipo -archs "$app/Contents/MacOS/Signal Chain Generator"
+          plutil -lint "$app/Contents/Info.plist"
+          "$app/Contents/MacOS/uv" tool run --python 3.13 --from signal-chain-generator==0.1.0 \
+              signal-chain-generator --help
