@@ -37,11 +37,6 @@ jobs:
         os: [macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 20
-
-  # Build the Mac app unsigned and check that its bundled uv can run a release.
-  mac-app:
-    runs-on: macos-latest
-    timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -51,6 +46,14 @@ jobs:
       - name: Test
         run: uv run --locked --extra dev pytest -q
 
+  # Build the Mac app unsigned and check that its bundled uv can run a release.
+  mac-app:
+    runs-on: macos-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - name: Build
         run: bash scripts/build-mac-app.sh 0.1.0
       - name: Check the bundle
