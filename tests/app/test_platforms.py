@@ -18,7 +18,10 @@ def test_pyusb_uses_the_bundled_libusb() -> None:
 
     device_usb._require_pyusb()
     assert libusb1._bundled is True
-    assert libusb_package.find_library("usb-1.0")  # the wheel ships one for this platform
+    bundled = libusb_package.get_library_path()
+    assert bundled is not None and bundled.is_file()  # the wheel ships one for this platform
+    backend = libusb1.get_backend()
+    assert backend is not None and backend.lib._name == str(bundled)
     device_usb._require_pyusb()  # a second call doesn't wrap it again
     assert libusb1.get_backend.__name__ == "get_backend"
 

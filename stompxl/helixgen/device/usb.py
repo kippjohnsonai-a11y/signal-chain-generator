@@ -258,9 +258,14 @@ def _use_bundled_libusb(usb: Any) -> None:
     if getattr(libusb1, "_bundled", False):
         return
     original = libusb1.get_backend
+    bundled = libusb_package.get_library_path()
+
+    def find_bundled(candidate: str) -> str | None:
+        # pyusb asks for several names in turn; the wheel's one file answers all.
+        return str(bundled) if bundled else libusb_package.find_library(candidate)
 
     def get_backend(find_library: Any = None) -> Any:
-        return original(find_library=find_library or libusb_package.find_library)
+        return original(find_library=find_library or find_bundled)
 
     libusb1.get_backend = get_backend
     libusb1._bundled = True
