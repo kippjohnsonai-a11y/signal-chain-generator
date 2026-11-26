@@ -72,7 +72,7 @@ def _settings_path() -> Path:
 
 def _read(path: Path) -> dict[str, Any]:
     try:
-        return json.loads(path.read_text())
+        return json.loads(path.read_text(encoding="utf-8"))
     except (OSError, ValueError):
         return {}
 
@@ -94,7 +94,7 @@ def write_settings(values: dict[str, Any]) -> None:
             settings[key] = value
     path = _settings_path()
     tmp = path.with_suffix(".tmp")
-    tmp.write_text(json.dumps(settings, indent=2))
+    tmp.write_text(json.dumps(settings, indent=2), encoding="utf-8")
     tmp.chmod(stat.S_IRUSR | stat.S_IWUSR)
     tmp.replace(path)
 

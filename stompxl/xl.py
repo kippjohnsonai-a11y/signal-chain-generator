@@ -465,7 +465,7 @@ def learn_usb_routing(hlx: dict[str, Any]) -> dict[str, int]:
 
 @lru_cache(maxsize=1)
 def _base_template() -> dict[str, Any]:
-    with open(resources.template_path()) as handle:
+    with open(resources.template_path(), encoding="utf-8") as handle:
         return json.load(handle)
 
 

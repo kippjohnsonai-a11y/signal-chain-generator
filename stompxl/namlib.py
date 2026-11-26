@@ -61,7 +61,7 @@ def pack(name: str) -> list[dict[str, Any]]:
     """One ready-made pack's captures."""
     if name not in PACKS:
         raise ValueError(f"No pack called {name}: try {', '.join(PACKS)}")
-    data = json.loads(resources.files("stompxl").joinpath(PACKS[name]).read_text())
+    data = json.loads(resources.files("stompxl").joinpath(PACKS[name]).read_text(encoding="utf-8"))
     return list(data["captures"])
 
 

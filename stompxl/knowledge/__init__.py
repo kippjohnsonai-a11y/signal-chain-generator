@@ -19,4 +19,4 @@ def topics() -> list[Path]:
 
 @lru_cache(maxsize=1)
 def library_text() -> str:
-    return "\n\n".join(path.read_text().strip() for path in topics())
+    return "\n\n".join(path.read_text(encoding="utf-8").strip() for path in topics())

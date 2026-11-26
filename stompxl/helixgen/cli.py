@@ -798,7 +798,7 @@ def _upload_via_usb(
     from .device.editor import apply_tone
     from .device.symbols import DeviceSymbols
 
-    preset = json.loads(Path(preset_path).read_text())
+    preset = json.loads(Path(preset_path).read_text(encoding="utf-8"))
     symbols = DeviceSymbols.load(find_symbol_table(None))
     name = preset.get("data", {}).get("meta", {}).get("name") or Path(preset_path).stem
     catalog = ModelCatalog(dataset) if dataset else None

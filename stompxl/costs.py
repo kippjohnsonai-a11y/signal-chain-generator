@@ -74,7 +74,7 @@ def record(model: str, usage: Any) -> float:
             meter.append(cost)
         line = {"at": time.time(), "model": model, "usd": round(cost, 6),
                 "in": _tokens(usage, "input_tokens"), "out": _tokens(usage, "output_tokens")}
-        with _lock, (config.data_dir() / _FILE).open("a") as f:
+        with _lock, (config.data_dir() / _FILE).open("a", encoding="utf-8") as f:
             f.write(json.dumps(line) + "\n")
         return cost
     except Exception as exc:  # noqa: BLE001 - a cost note must never break a job
@@ -100,7 +100,7 @@ def month_total(now: float | None = None) -> float:
     total = 0.0
     if not path.exists():
         return total
-    with _lock, path.open() as f:
+    with _lock, path.open(encoding="utf-8") as f:
         for raw in f:
             try:
                 line = json.loads(raw)

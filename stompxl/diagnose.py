@@ -282,5 +282,5 @@ def run(targets: list[str]) -> tuple[str, list[str]]:
             lines.append(f"{first_key} vs {key}: {len(diffs)} difference(s)")
             lines.extend(f"  {d['path']}: {d['first']!r} -> {d['other']!r}" for d in diffs[:20])
     out = config.data_dir() / "diagnose.json"
-    out.write_text(json.dumps(report, indent=1, default=repr))
+    out.write_text(json.dumps(report, indent=1, default=repr), encoding="utf-8")
     return str(out), lines

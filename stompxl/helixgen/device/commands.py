@@ -171,7 +171,7 @@ def run_push(args: argparse.Namespace) -> int:
     from stompxl.helixgen.device.usb import DeviceError, Session
     from stompxl.helixgen.device.writer import WriteAbortedError
 
-    preset = json.loads(args.preset.read_text())
+    preset = json.loads(args.preset.read_text(encoding="utf-8"))
     symbols = DeviceSymbols.load(find_symbol_table(args.symbols))
     name = preset.get("data", {}).get("meta", {}).get("name") or args.preset.stem
 

@@ -88,7 +88,7 @@ def _load() -> None:
         return
     _loaded = True
     try:
-        saved = json.loads(_failures_path().read_text())
+        saved = json.loads(_failures_path().read_text(encoding="utf-8"))
     except (OSError, ValueError):
         return
     if isinstance(saved, list):
@@ -114,7 +114,7 @@ def record_failure(what: str, error: BaseException | str, *, frames: str = "",
         try:
             path = _failures_path()
             tmp = path.with_suffix(".tmp")
-            tmp.write_text(json.dumps(list(_failures), indent=1))
+            tmp.write_text(json.dumps(list(_failures), indent=1), encoding="utf-8")
             tmp.replace(path)
         except OSError:
             logging.getLogger(__name__).warning("Could not save the failure for diagnostics")

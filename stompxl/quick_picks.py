@@ -42,7 +42,7 @@ class PickError(ValueError):
 
 @cache
 def _defaults() -> dict[str, Any]:
-    return json.loads(DEFAULTS.read_text())
+    return json.loads(DEFAULTS.read_text(encoding="utf-8"))
 
 
 def main_controls() -> dict[str, list[str]]:

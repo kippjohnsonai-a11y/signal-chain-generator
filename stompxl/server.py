@@ -118,7 +118,7 @@ TONE_STARTERS = Path(__file__).parent / "tone_starters.json"
 def tone_starters() -> dict[str, Any]:
     """Suggested starting tweaks and gear notes, offered in the "My tone" dialog."""
     try:
-        return json.loads(TONE_STARTERS.read_text())
+        return json.loads(TONE_STARTERS.read_text(encoding="utf-8"))
     except (OSError, ValueError):
         return {"tweaks": [], "gear_notes": []}
 
@@ -681,14 +681,20 @@ def create_app(library: Library | None = None, caller_factory: Any = None) -> Fa
         """What a new install still needs: shown once, until it's done or dismissed."""
         guest = users.is_guest()
         hx_edit = None
+        pedal_info: dict[str, Any] = {"connected": False, "description": "", "error": ""}
         if not guest:
             from stompxl.helixgen.device.hxedit import find_hx_edit
 
             found = find_hx_edit()
             hx_edit = str(found) if found else None
+            s = pedal.status()
+            pedal_info = {"connected": s.connected, "description": s.description, "error": s.error}
         return {
             "guest": guest,
             "api_key": bool(config.anthropic_api_key()),
+            # Where the key comes from: a shell variable can't be changed in Settings.
+            "api_key_from_env": bool(os.environ.get("ANTHROPIC_API_KEY")),
+            "pedal": pedal_info,
             "guitars": len(lib.guitars()),
             "hx_edit": hx_edit,
             "done": bool(config.get_setting("setup_done")),
@@ -1737,7 +1743,7 @@ def create_app(library: Library | None = None, caller_factory: Any = None) -> Fa
         # forbid caching the page, so a browser never pairs an old page with
         # new code after an update.
         stamp = VERSION["commit"]
-        html = (STATIC / "index.html").read_text()
+        html = (STATIC / "index.html").read_text(encoding="utf-8")
         for asset in ("/static/relay.js", "/static/app.js", "/static/closeup.js",
                       "/static/desk.js", "/static/style.css"):
             html = html.replace(f'"{asset}"', f'"{asset}?v={stamp}"')
