@@ -1,6 +1,7 @@
 """The Send diagnostics button: what it gathers, what it blanks, where it goes."""
 
 import json
+import os
 import urllib.error
 
 import pytest
@@ -253,9 +254,11 @@ def test_redact_hides_personal_details(monkeypatch, tmp_path):
 
     from stompxl import diagnostics
 
-    monkeypatch.setattr(Path, "home", classmethod(lambda cls: Path("/Users/someone")))
+    home = Path("/Users/someone")
+    monkeypatch.setattr(Path, "home", classmethod(lambda cls: home))
+    log = f"{home}{os.sep}Library{os.sep}app.log"  # as this platform writes it
     text = diagnostics.redact("HX Stomp XL (serial 1234567) from jo.smith+x@mail.example.org "
-                              "at /Users/someone/Library/Logs/app.log")
+                              f"at {log}")
     assert "1234567" not in text and "serial [hidden]" in text
     assert "jo.smith" not in text and "mail.example.org" not in text
-    assert "/Users/someone" not in text and "~/Library/Logs/app.log" in text
+    assert str(home) not in text and text.endswith(f"~{os.sep}Library{os.sep}app.log")
