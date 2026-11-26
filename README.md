@@ -29,10 +29,10 @@ It runs on your own Mac, which keeps your library and talks to the pedal. Your p
 
 **New Mac, no Homebrew yet?** Follow the step-by-step guide: [docs/mac-setup.md](docs/mac-setup.md). **Adding another user account on the same Mac?** See [its section](docs/mac-setup.md#adding-a-second-user-on-the-same-mac).
 
-Once it's released on PyPI ([docs/releasing.md](docs/releasing.md)), `brew install uv libusb` then `uvx signal-chain-generator` is all it takes. Until then, if you already have Homebrew:
+With [uv](https://docs.astral.sh/uv/) installed (`brew install uv`), `uvx signal-chain-generator` is all it takes. To run from a checkout instead:
 
 ```bash
-brew install uv libusb             # uv manages Python; libusb lets the app reach the pedal
+brew install uv                    # uv manages Python and the app's libraries
 git clone https://github.com/kippjohnsonai-a11y/signal-chain-generator.git stompxl
 cd stompxl
 uv run stompxl                     # installs everything the first time, then opens http://127.0.0.1:8765

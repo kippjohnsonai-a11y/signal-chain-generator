@@ -44,6 +44,8 @@ def config_path() -> Path:
         return Path(override).expanduser() / "config.json"
     if sys.platform == "darwin":
         return Path.home() / "Library" / "Application Support" / "HelixGen" / "config.json"
+    if sys.platform == "win32" and os.environ.get("APPDATA"):
+        return Path(os.environ["APPDATA"]) / "HelixGen" / "config.json"
     base = os.environ.get("XDG_CONFIG_HOME")
     root = Path(base).expanduser() if base else Path.home() / ".config"
     return root / "helixgen" / "config.json"

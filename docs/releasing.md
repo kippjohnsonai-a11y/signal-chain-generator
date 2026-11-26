@@ -4,7 +4,7 @@ Releases go to PyPI as `signal-chain-generator`, so anyone can run the app
 without cloning the repository:
 
 ```bash
-brew install uv libusb
+brew install uv
 uvx signal-chain-generator          # or: pipx install signal-chain-generator
 ```
 

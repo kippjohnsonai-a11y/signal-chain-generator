@@ -12,6 +12,7 @@ import hashlib
 import io
 import json
 import logging
+import os
 import re
 import shutil
 import subprocess
@@ -1204,9 +1205,11 @@ def create_app(library: Library | None = None, caller_factory: Any = None) -> Fa
             raise HTTPException(403, "The NAM folder is on the app's own computer, not yours.")
         path = namlib.ir_dir()
         path.mkdir(parents=True, exist_ok=True)
-        opener = "open" if sys.platform == "darwin" else "xdg-open"
         with contextlib.suppress(OSError):
-            subprocess.Popen([opener, str(path)])
+            if sys.platform == "win32":
+                os.startfile(path)  # type: ignore[attr-defined]
+            else:
+                subprocess.Popen(["open" if sys.platform == "darwin" else "xdg-open", str(path)])
         return {"folder": str(path)}
 
     @app.get("/api/library/export")

@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import os
 import subprocess
+import sys
 from pathlib import Path
 
 from stompxl.helixgen.config import read_setting, write_setting
@@ -45,14 +46,34 @@ HX_EDIT_ENV_VAR = "HELIXGEN_HX_EDIT"
 #: Where the config file remembers a resolved or user-chosen install.
 _CONFIG_KEY = "hx_edit_path"
 
-#: The installer has used both of these, so both are tried.
+def _windows_installs() -> tuple[Path, ...]:
+    """HX Edit's install folders under each Program Files directory."""
+    roots = {os.environ.get(name) for name in ("ProgramFiles", "ProgramFiles(x86)", "ProgramW6432")}
+    roots |= {r"C:\Program Files", r"C:\Program Files (x86)"}
+    names = ("Line6/HX Edit", "Line 6/HX Edit", "HX Edit")
+    return tuple(Path(root) / name for root in sorted(r for r in roots if r) for name in names)
+
+
+#: The macOS installer has used both of these, so both are tried. On Windows,
+#: HX Edit installs under Program Files.
 KNOWN_BUNDLE_PATHS: tuple[Path, ...] = (
-    Path("/Applications/Line6/HX Edit.app"),
-    Path("/Applications/HX Edit.app"),
+    _windows_installs() if sys.platform == "win32" else (
+        Path("/Applications/Line6/HX Edit.app"),
+        Path("/Applications/HX Edit.app"),
+    )
 )
 
-#: Resources read out of the bundle, relative to it.
-_RESOURCES = "Contents/Resources"
+#: Where the data files sit inside an install, tried in order: the macOS
+#: bundle's Resources, then a Windows install folder and its usual subfolders.
+_RESOURCE_DIRS = ("Contents/Resources", ".", "Resources", "resources", "data")
+
+
+def _resources(install: Path) -> Path | None:
+    for sub in _RESOURCE_DIRS:
+        folder = install / sub
+        if (folder / "Helix.sym").is_file():
+            return folder
+    return None
 
 #: Spotlight can be slow or disabled; a stalled query must not stall an upload.
 _MDFIND_TIMEOUT_SECONDS = 5.0
@@ -65,7 +86,7 @@ def _is_hx_edit(bundle: Path) -> bool:
     half-installed copy is rejected here instead of failing later with a
     confusing error about a missing symbol table.
     """
-    return (bundle / _RESOURCES / "Helix.sym").is_file()
+    return _resources(bundle) is not None
 
 
 def _from_env() -> Path | None:
@@ -159,9 +180,10 @@ def forget_hx_edit() -> None:
 def resource_in_hx_edit(name: str, *, bundle: Path | None = None) -> Path | None:
     """One file inside HX Edit's ``Resources``, or ``None`` if it isn't there."""
     found = bundle if bundle is not None else find_hx_edit()
-    if found is None:
+    folder = _resources(found) if found is not None else None
+    if folder is None:
         return None
-    path = found / _RESOURCES / name
+    path = folder / name
     return path if path.is_file() else None
 
 
@@ -188,7 +210,8 @@ NOT_FOUND_MESSAGE = (
     "Could not find HX Edit. Helix.sym ships inside it and is not distributed "
     "with this project, and every device operation needs it.\n"
     "  - Install HX Edit (a free download from Line 6), or\n"
-    f"  - set {HX_EDIT_ENV_VAR} to your copy of HX Edit.app, or\n"
+    f"  - set {HX_EDIT_ENV_VAR} to your copy of HX Edit (the .app on a Mac, its\n"
+    "    install folder on Windows), or\n"
     "  - pass --symbols with the path to Helix.sym:\n"
     '        find /Applications -name Helix.sym'
 )

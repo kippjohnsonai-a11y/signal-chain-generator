@@ -243,16 +243,39 @@ class Reply:
         return self.status == 0 and self.payload is None
 
 
+def _use_bundled_libusb(usb: Any) -> None:
+    """Point pyusb at the libusb that ships in the ``libusb-package`` wheel.
+
+    It has a build for macOS, Windows and Linux, so nobody has to install
+    libusb themselves. Without it pyusb falls back to a system libusb (say,
+    Homebrew's).
+    """
+    try:
+        import libusb_package
+        import usb.backend.libusb1 as libusb1
+    except ImportError:
+        return
+    if getattr(libusb1, "_bundled", False):
+        return
+    original = libusb1.get_backend
+
+    def get_backend(find_library: Any = None) -> Any:
+        return original(find_library=find_library or libusb_package.find_library)
+
+    libusb1.get_backend = get_backend
+    libusb1._bundled = True
+
+
 def _require_pyusb() -> Any:
     try:
         import usb.core
         import usb.util
     except ImportError as exc:  # pragma: no cover - depends on the install
         raise DeviceError(
-            "USB support needs pyusb and libusb. Install them with:\n"
-            "    pip install pyusb\n"
-            "    brew install libusb"
+            "USB support needs pyusb. Install it with:\n"
+            "    pip install pyusb libusb-package"
         ) from exc
+    _use_bundled_libusb(usb)
     return usb
 
 

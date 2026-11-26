@@ -33,7 +33,7 @@ def folder() -> Path:
     chosen = config.get_setting(FOLDER_SETTING)
     if chosen:
         path = Path(chosen).expanduser()
-    elif (sys.platform == "darwin" and not os.environ.get(config.DATA_DIR_ENV)
+    elif (sys.platform in ("darwin", "win32") and not os.environ.get(config.DATA_DIR_ENV)
           and not users.is_guest()):
         path = Path.home() / "Music" / "StompXL NAM"
     else:

@@ -9,7 +9,7 @@ HelixGen's USB protocol is verified on the HX Stomp. The XL uses the same protoc
 
 ## 1. Can the app see the pedal?
 - Quit HX Edit, connect the XL, start the app. The top bar should show "HX Stomp XL (serial ...) (untested model)".
-- If it says "USB unavailable": run `brew install libusb` and restart the app.
+- If it says "USB unavailable": update the app (`uvx signal-chain-generator@latest`), which ships its own libusb, and restart it.
 
 ## 2. File import (no USB write)
 - Generate a preset, click **Download .hlx**, and drag the file into HX Edit's preset list.

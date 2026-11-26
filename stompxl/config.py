@@ -35,6 +35,9 @@ def base_dir() -> Path:
         # Installs from before the rename keep their library where it is.
         legacy = support / LEGACY_FOLDER
         path = legacy if legacy.is_dir() else support / APP_NAME
+    elif sys.platform == "win32":
+        appdata = os.environ.get("APPDATA")
+        path = (Path(appdata) if appdata else Path.home() / "AppData" / "Roaming") / APP_NAME
     else:
         path = Path.home() / ".stompxl"
     path.mkdir(parents=True, exist_ok=True)
