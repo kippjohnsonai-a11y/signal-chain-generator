@@ -1,0 +1,668 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Signal Chain Generator</title>
+<link rel="stylesheet" href="/static/style.css">
+<link rel="manifest" href="/static/manifest.webmanifest">
+<meta name="theme-color" content="#111316">
+<link rel="apple-touch-icon" href="/static/icon-192.png">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Cpath d=%22M8 1l7 7-7 7-7-7z%22 fill=%22%23e0a526%22/%3E%3C/svg%3E">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand"><span class="logo">&#9670;</span> <span class="brand-name">Signal Chain <span class="brand-long">Generator</span></span> <span id="version" class="version"></span></div>
+  <div class="top-actions">
+    <button id="pedal-pill" class="pill" type="button" title="Pedal status"><span class="dot"></span><span class="pill-text">Pedal: checking...</span></button>
+    <button class="pill desk-pill" data-desk-go type="button" title="Quick pedal control: tune whatever preset is on the pedal, jump between its presets, ask Claude">Pedal</button>
+    <button id="menu-btn" class="ghost menu-btn" type="button" aria-label="Menu" aria-expanded="false">&#9776;</button>
+    <div class="top-menu" id="top-menu">
+      <button id="relay-btn" class="ghost" hidden title="Use the pedal plugged into this phone or computer, over USB">Use pedal here</button>
+      <button class="ghost" data-open="guitars-dialog">Guitars</button>
+      <button class="ghost" data-open="prefs-dialog" title="Tweaks that apply to every song, and notes for your NAM captures and effects">My tone</button>
+      <button class="ghost" data-open="settings-dialog">Settings</button>
+      <button class="ghost" data-nav="#/more" title="Back up, phones, setup and the rest">More</button>
+      <button class="ghost" id="report-btn" data-report hidden title="Something not working? Send Claude what just happened">Report a problem</button>
+    </div>
+  </div>
+</header>
+
+<div class="layout">
+  <aside class="sidebar">
+    <button id="new-song" class="primary wide">+ New song</button>
+    <button class="wide desk-side" data-desk-go type="button" title="Tune whatever preset is on the pedal, without making it a song">🎛 Quick pedal control</button>
+    <input id="song-filter" type="search" placeholder="Search songs, artists or tags">
+    <div id="tag-filter" class="tag-filter"></div>
+    <div class="folder-bar"><span class="hint">Songs A–Z</span><button class="ghost small sets-side" data-nav="#/sets" type="button">Set lists</button></div>
+    <ul id="song-list" class="song-list"></ul>
+  </aside>
+
+  <main id="main">
+    <!-- New preset form -->
+    <section id="new-view" class="card">
+      <button class="ghost back-btn" data-back type="button">&larr; Songs</button>
+      <h1>New song</h1>
+      <div class="new-tabs">
+        <button type="button" data-new-tab="generate" class="active">Generate with Claude</button>
+        <button type="button" data-new-tab="blank">Start blank</button>
+        <button type="button" data-new-tab="import">Import a preset</button>
+      </div>
+      <form id="generate-form" data-tab="generate">
+        <label>Song
+          <input name="song" required placeholder="Enter Sandman by Metallica" autocomplete="off">
+        </label>
+        <div class="row n1-selects">
+          <label>Guitar <select name="guitar_id" id="guitar-select" required></select></label>
+          <label>Output rig <select name="rig_id" id="rig-select" required></select></label>
+        </div>
+        <div class="n1-chips">
+          <div class="n1-label">Guitar</div>
+          <div class="chip-pick" data-chips-for="guitar-select"></div>
+          <div class="n1-label">Output rig</div>
+          <div class="chip-pick" data-chips-for="rig-select"></div>
+        </div>
+        <fieldset class="toggles n1-switches">
+          <legend>Include</legend>
+          <label class="toggle"><input type="checkbox" name="wah"> Wah</label>
+          <label class="toggle"><input type="checkbox" name="expression" checked> Expression pedal</label>
+          <label class="toggle"><input type="checkbox" name="looper"> Looper</label>
+          <label class="toggle" title="Polyphonic capo: shifts your whole guitar up or down without retuning. Uses about 40% of the DSP."><input type="checkbox" name="capo"> Poly Capo</label>
+          <label class="toggle" title="An off drive just before the amp. Stage mode's Gain boost switches it on. Left out when the chain is full."><input type="checkbox" name="stage_boost" checked> Stage boost</label>
+          <label class="toggle" data-nam-only hidden title="NAM rigs: use only captures that include their cab, so the chain needs no cab block. Handy when Poly Capo leaves no DSP for a cab."><input type="checkbox" name="full_rig"> Full-rig captures only (no cab)</label>
+        </fieldset>
+        <div class="dsp-room" data-room></div>
+        <label>Extra instructions (optional)
+          <input name="instructions" placeholder="e.g. live version, a bit less gain than the record">
+        </label>
+        <div class="n1-go"><button class="primary" type="submit">Generate preset</button></div>
+        <p class="hint" id="no-key-hint" hidden>Building a preset needs an Anthropic API key: add one in More &gt; Settings. A blank song, imports and the pedal work without one.</p>
+        <details class="n1-help"><summary>How this works</summary><p class="hint">Your toggle choices are remembered. With the wah off, the expression pedal becomes a volume pedal. Every preset gets 4 snapshots, one per section of the song. Claude also says whether the song would benefit from the wah, expression pedal, looper, or Poly Capo. On a NAM rig, "Full-rig captures only" sticks to captures that include their cab, which saves the cab block's DSP. The box above the instructions shows how much DSP your rig and toggles leave and which other pedals still fit. The Stage boost is an off drive before the amp that Stage mode's Gain boost switches on.</p></details>
+      </form>
+
+      <form id="blank-form" data-tab="blank" hidden>
+        <div class="row">
+          <label>Song title <input name="title" required placeholder="e.g. My new riff" autocomplete="off"></label>
+          <label>Artist (optional) <input name="artist" autocomplete="off"></label>
+        </div>
+        <div class="row">
+          <label>Guitar <select name="guitar_id" id="blank-guitar" required></select></label>
+          <label>Output rig <select name="rig_id" id="blank-rig" required></select></label>
+        </div>
+        <div class="row">
+          <label>Start with
+            <select name="start">
+              <option value="amp">A clean amp and cab (US Deluxe)</option>
+              <option value="empty">Nothing: add every block yourself</option>
+            </select>
+          </label>
+          <label>Tempo (BPM) <input name="tempo" type="number" min="30" max="300" value="120"></label>
+        </div>
+        <button class="primary" type="submit">Create blank song</button>
+        <p class="hint">No AI: you get a preset with 4 snapshots (Intro, Verse, Chorus, Solo) and your usual noise gate. Build it with Edit values. The amp and cab apply to the headphones/FRFR rig; other rigs start empty. You can have Claude write a song plan later if you like.</p>
+      </form>
+
+      <form id="import-form" data-tab="import" hidden>
+        <div class="row" style="align-items:center">
+          <label class="toggle"><input type="radio" name="source" value="pedal" checked> From the pedal</label>
+          <label class="toggle"><input type="radio" name="source" value="file"> From an .hlx file</label>
+        </div>
+        <div id="import-pedal" class="row" style="align-items:end">
+          <label>Preset slot <select name="slot" id="import-slot"></select></label>
+          <button type="button" id="import-load-names" style="flex:0 0 auto">Load names from pedal</button>
+        </div>
+        <label id="import-file" hidden>Preset file (.hlx)
+          <input name="file" type="file" accept=".hlx,application/json">
+        </label>
+        <div class="row">
+          <label>Song title <input name="title" placeholder="defaults to the preset's name" autocomplete="off"></label>
+          <label>Artist (optional) <input name="artist" autocomplete="off"></label>
+        </div>
+        <div class="row">
+          <label>Guitar <select name="guitar_id" id="import-guitar" required></select></label>
+          <label>Output rig <select name="rig_id" id="import-rig" required></select></label>
+        </div>
+        <button class="primary" type="submit">Import</button>
+        <p class="hint">No AI, and nothing on the pedal changes. From the pedal: quit HX Edit first (only one program can use the USB connection). From a file: export a preset from HX Edit, or use one you downloaded. Blocks, values, snapshots, footswitches, expression pedal, gate and output come across; anything that doesn't is listed in the new version's notes.</p>
+      </form>
+    </section>
+
+    <!-- Song view -->
+    <section id="song-view" hidden>
+      <div class="song-head">
+        <button class="ghost back-btn" data-back type="button">&larr; Songs</button>
+        <div class="song-title-row">
+          <button class="star-btn" id="song-star" type="button" aria-label="Star this song">&#9734;</button>
+          <div class="grow">
+            <h1 id="song-title"></h1>
+            <div id="song-artist" class="muted"></div>
+          </div>
+        </div>
+        <div id="set-nav" class="set-nav"></div>
+        <div class="chips-row">
+          <div id="guitar-chips" class="guitar-chips"></div>
+          <button class="ghost stage-btn" id="stage-btn" type="button" title="Stage mode: big buttons for a gig or rehearsal, changes play on the pedal">&#127908; Stage</button>
+        </div>
+        <div id="song-panes" class="song-panes" role="tablist" aria-label="Song sections">
+          <button type="button" role="tab" data-pane-tab="play" class="on" aria-selected="true">Play</button>
+          <button type="button" role="tab" data-pane-tab="tweak" aria-selected="false">Tweak</button>
+          <button type="button" role="tab" data-pane-tab="notes" aria-selected="false">Notes</button>
+          <button type="button" role="tab" data-pane-tab="versions" aria-selected="false">Versions</button>
+        </div>
+      </div>
+      <div class="song-body">
+        <div class="versions card" data-pane="versions">
+          <div class="chain-head"><h3>Versions</h3><button id="select-versions" class="ghost small">Select</button></div>
+          <div id="select-bar" class="select-bar" hidden>
+            <span id="select-count" class="hint">0 selected</span>
+            <div class="actions">
+              <button id="select-all" class="small">All</button>
+              <button id="tag-selected" class="small">Add tag</button>
+              <button id="untag-selected" class="small">Remove tag</button>
+              <button id="delete-selected" class="small danger">Delete</button>
+              <button id="select-done" class="small ghost">Done</button>
+            </div>
+          </div>
+          <ul id="version-tree"></ul>
+        </div>
+        <div id="version-detail" class="detail"></div>
+      </div>
+    </section>
+
+    <!-- Set lists (phone: the Sets tab) -->
+    <section id="sets-view" hidden>
+      <div class="view-head"><h1>Set lists</h1><button id="new-set" class="ghost">+ New set</button></div>
+      <p class="hint">Songs in play order. Open one from here and Prev / Next walk the set. A song can be in as many sets as you like.</p>
+      <div id="sets-list"></div>
+    </section>
+
+    <!-- Stage mode: a lean screen for gigs and rehearsal (see stage.js) -->
+    <section id="stage-view" hidden>
+      <div id="stage" class="stage"></div>
+    </section>
+
+    <!-- Settings and tools (phone: the More tab) -->
+    <section id="more-view" hidden>
+      <h1>More</h1>
+      <div class="more-group">
+        <h3>Songs</h3>
+        <button class="more-item" data-nav="#/new">New song<span>Generate, start blank or import a preset</span></button>
+      </div>
+      <div class="more-group">
+        <h3>My rig</h3>
+        <button class="more-item" data-open="guitars-dialog">Guitars<span id="more-guitars"></span></button>
+        <button class="more-item" data-open="settings-dialog" data-section="nam" data-title="NAM captures">NAM captures<span id="more-nam"></span></button>
+        <button class="more-item" data-open="settings-dialog" data-section="pedal" data-title="Expression and gate">Expression and gate<span>Your expression pedal setup and input noise gate</span></button>
+        <button class="more-item" id="more-relay" hidden>Use pedal on this device<span>The pedal plugged into this phone or computer</span></button>
+      </div>
+      <div class="more-group">
+        <h3>My tone</h3>
+        <button class="more-item" data-open="prefs-dialog" data-tone="tweaks">Tweaks for every song<span>What Claude follows on every preset</span></button>
+        <button class="more-item" data-open="prefs-dialog" data-tone="gear">Gear notes<span>Default handling for a capture, model or kind of block</span></button>
+        <button class="more-item" data-open="prefs-dialog" data-tone="picks">Quick picks<span>One-tap moves in a pedal's close-up</span></button>
+        <button class="more-item" data-open="prefs-dialog" data-tone="starters">Suggested tweaks<span>Starting points for a rock cover band</span></button>
+      </div>
+      <div class="more-group">
+        <h3>App</h3>
+        <button class="more-item" data-open="settings-dialog" data-section="claude" data-title="Claude">Claude<span>API key, model and thinking effort</span></button>
+        <button class="more-item" type="button" id="more-setup">Set up this computer<span>API key, guitar, HX Edit and the pedal</span></button>
+        <button class="more-item" type="button" id="more-lan">Phones on this Wi-Fi<span>Pair a phone to use the app at home</span></button>
+        <button class="more-item" data-open="library-dialog">Back up or move your library<span>Export everything to one file, or bring a library in</span></button>
+        <button class="more-item" data-open="settings-dialog" data-section="diag" data-title="Diagnostics" id="more-diag">Diagnostics<span>GitHub token and Send diagnostics</span></button>
+        <button class="more-item" data-report type="button" id="more-help">Report a problem<span>Send Claude what just happened</span></button>
+      </div>
+      <p class="hint" id="more-version"></p>
+    </section>
+
+    <!-- Progress -->
+    <section id="job-view" class="card" hidden>
+      <h2 id="job-title">Working...</h2>
+      <div class="spinner"></div>
+      <ol id="job-log" class="log"></ol>
+    </section>
+  </main>
+</div>
+
+<!-- Guitars -->
+<dialog id="guitars-dialog" class="page">
+  <button type="button" class="page-back" data-close-dialog>&lsaquo; Back</button>
+  <h2>Your guitars</h2>
+  <ul id="guitar-list" class="list"></ul>
+  <form id="guitar-form" class="stack">
+    <h3 id="guitar-form-title">Add a guitar</h3>
+    <input type="hidden" name="id">
+    <label>Name <input name="name" required placeholder="Fender Stratocaster"></label>
+    <label>Pickups
+      <select name="pickups">
+        <option>SSS single coils</option>
+        <option>HSS (bridge humbucker)</option>
+        <option>HH humbuckers</option>
+        <option>P90s</option>
+        <option>Active humbuckers</option>
+        <option>Other</option>
+      </select>
+    </label>
+    <label>Pickup details <input name="pickup_notes" placeholder="e.g. Custom Shop '69, vintage output"></label>
+    <label>Tuning <input name="tuning" value="E standard"></label>
+    <label>Notes <input name="notes" placeholder="e.g. 10-46 strings, bright maple neck"></label>
+    <div class="row">
+      <button class="primary" type="submit">Save guitar</button>
+      <button type="button" class="ghost" id="guitar-reset">Clear</button>
+    </div>
+  </form>
+  <form method="dialog"><button class="ghost">Close</button></form>
+</dialog>
+
+<!-- My tone: cross-song tweaks and gear notes -->
+<dialog id="prefs-dialog" class="wide page">
+  <button type="button" class="page-back" data-close-dialog>&lsaquo; Back</button>
+  <h2>My tone</h2>
+  <p class="hint">Claude follows these on every new preset, tweak and fork. Pause one to try a song without it.</p>
+  <div class="new-tabs">
+    <button type="button" data-tone-tab="tweaks" class="active">Tweaks for every song <b id="tweak-count"></b></button>
+    <button type="button" data-tone-tab="gear">Gear notes <b id="gear-count"></b></button>
+    <button type="button" data-tone-tab="starters">Suggested <b id="starter-count"></b></button>
+    <button type="button" data-tone-tab="picks">Quick picks <b id="qp-count"></b></button>
+  </div>
+
+  <div data-tone-pane="tweaks">
+    <ul id="pref-list" class="list"></ul>
+    <form id="pref-form" class="stack">
+      <h3 id="pref-form-title">Add a tweak</h3>
+      <input type="hidden" name="id">
+      <label>Tweak <textarea name="text" rows="2" required placeholder="e.g. cut 2-3 dB around 420 Hz on driven tones so it isn't muddy in the band"></textarea></label>
+      <label>Applies to <select name="guitar_id" id="pref-guitar"></select></label>
+      <div class="row">
+        <button class="primary" type="submit" id="pref-submit">Add tweak</button>
+        <button type="button" class="ghost" id="pref-reset">Clear</button>
+      </div>
+      <p class="hint">"Remember this" on a song's Tweak box saves here too.</p>
+    </form>
+  </div>
+
+  <div data-tone-pane="gear" hidden>
+    <p class="hint">Default handling for one NAM capture, one effect or amp model, or every block of a kind. Claude applies a note only when that gear is in the preset, e.g. "always follow this capture with a Parametric EQ cutting 400 Hz".</p>
+    <ul id="gear-list" class="list"></ul>
+    <form id="gear-form" class="stack">
+      <h3 id="gear-form-title">Add a gear note</h3>
+      <input type="hidden" name="id">
+      <div class="row">
+        <label>Kind <select name="kind" id="gear-kind">
+          <option value="nam">NAM capture</option>
+          <option value="model">Effect or amp model</option>
+          <option value="category">Every block of a kind</option>
+        </select></label>
+        <label>Which one <input name="name" id="gear-name" list="gear-options" required autocomplete="off" placeholder="start typing"></label>
+      </div>
+      <datalist id="gear-options"></datalist>
+      <label>Note <textarea name="text" rows="2" required placeholder="e.g. Parametric after it: -3 dB at 400 Hz, low cut 110 Hz"></textarea></label>
+      <div class="row">
+        <button class="primary" type="submit" id="gear-submit">Add note</button>
+        <button type="button" class="ghost" id="gear-reset">Clear</button>
+      </div>
+    </form>
+  </div>
+
+  <div data-tone-pane="picks" hidden>
+    <p class="hint">One-tap moves in a pedal's close-up (tap a block while editing). Changes are in the units the editor shows: <code>Presence -1</code> nudges, <code>LowCut = 100</code> sets, <code>Decay x0.75</code> scales, and <code>Gain|Drive</code> means whichever the pedal has. "+ Save as pick" in a close-up makes one from what you just dialled in.</p>
+    <ul id="qp-list" class="list"></ul>
+    <form id="qp-form" class="stack">
+      <h3 id="qp-form-title">Add a quick pick</h3>
+      <input type="hidden" name="id">
+      <div class="row">
+        <label>For <select name="kind" id="qp-kind">
+          <option value="category">Every block of a kind</option>
+          <option value="model">One model</option>
+        </select></label>
+        <label>Which <input name="name" list="qp-options" required autocomplete="off" placeholder="e.g. Amp, or Cali Rectifire"></label>
+      </div>
+      <datalist id="qp-options"></datalist>
+      <label>Name <input name="label" maxlength="40" required placeholder="e.g. Gig volume"></label>
+      <label>Changes <input name="changes" required placeholder="e.g. ChVol +1, Presence -0.5"></label>
+      <label>Only models whose name contains (optional) <input name="match" placeholder="e.g. Comp"></label>
+      <div class="row">
+        <button class="primary" type="submit" id="qp-submit">Add pick</button>
+        <button type="button" class="ghost" id="qp-reset">Clear</button>
+        <button type="button" class="ghost" id="qp-restore">Restore starting picks</button>
+      </div>
+    </form>
+  </div>
+
+  <div data-tone-pane="starters" hidden>
+    <p class="hint">Starting points for a rock cover band. Add the ones you agree with; you can edit or delete them afterwards.</p>
+    <div id="starter-list"></div>
+  </div>
+  <form method="dialog"><button class="ghost">Close</button></form>
+</dialog>
+
+<!-- Settings -->
+<dialog id="settings-dialog" class="page">
+  <button type="button" class="page-back" data-close-dialog>&lsaquo; Back</button>
+  <h2 id="settings-title">Settings</h2>
+  <form id="settings-form" class="stack">
+    <div data-set="claude" class="stack">
+    <label id="key-field">Anthropic API key <input name="anthropic_api_key" type="password" placeholder="sk-ant-... (leave blank to keep current)" autocomplete="off"></label>
+    <p class="hint" id="key-status"></p>
+    <label>Claude model <select name="claude_model" id="model-select"></select></label>
+    <p class="hint" id="model-status"></p>
+    <label>Thinking effort <select name="claude_effort" id="effort-select"></select></label>
+    <p class="hint">Higher effort gives more careful tones but takes longer and costs more. Medium is a good default.</p>
+    </div>
+    <div data-set="pedal" class="stack">
+    <label>Expression pedal <select name="exp_pedal" id="exp-select"></select></label>
+    <label>Input noise gate <select name="gate_mode" id="gate-select"></select></label>
+    </div>
+    <div data-set="nam" class="stack">
+    <h3 class="set-title">NAM captures</h3>
+    <ul id="nam-rows" class="list nam-rows"></ul>
+    <div id="nam-row-form" class="nam-row-form">
+      <div class="row">
+        <label>IR slot <input id="nam-row-slot" type="number" min="1" max="128" placeholder="- computer only"></label>
+        <label>Name <input id="nam-row-name" placeholder="e.g. JCM800 Crunch"></label>
+      </div>
+      <label>What amp it is <input id="nam-row-desc" placeholder="e.g. Marshall JCM800, amp only"></label>
+      <div class="row nam-row-actions">
+        <label class="toggle"><input type="checkbox" id="nam-row-cab"> Includes its cab</label>
+        <button type="button" class="ghost" id="nam-row-save">+ Add capture</button>
+        <button type="button" class="ghost" id="nam-row-clear" hidden>Cancel</button>
+      </div>
+    </div>
+    <details class="nam-text"><summary>Edit as text</summary>
+    <label>NAM captures <textarea name="nam_captures" rows="4" placeholder="12 | JCM800 Crunch | Marshall JCM800, amp only
+13 | Recto Full Rig | Mesa Rectifier with V30s | cab
+- | Twin Clean | on the computer only"></textarea></label>
+    <p class="hint">For the two NAM rigs, one capture per line: IR slot (where the converted capture sits on the pedal, or - for one only on the computer) | name | what amp it is | "cab" if it includes its cabinet. NAM on pedal needs the NAM A2 Lite firmware, an unofficial third-party mod that is not from Line 6 and is used at your own risk, plus A2 Lite captures; see docs/nam.md. <span id="nam-usb-status"></span></p>
+    </details>
+    <button type="button" class="ghost" id="nam-library-open">Get captures from TONE3000...</button>
+    </div>
+    <div id="diag-settings" class="stack" data-set="diag">
+      <label>GitHub token for diagnostics <input name="diagnostics_token" type="password" placeholder="github_pat_... (leave blank to keep current)" autocomplete="off"></label>
+      <p class="hint"><span id="diag-token-status"></span> A fine-grained token with Issues: read and write on this project's repository only. <button type="button" class="ghost" id="diag-open">Send diagnostics...</button></p>
+    </div>
+    <p class="hint" id="data-dir" data-set="claude"></p>
+    <button class="primary page-save" type="submit">Save</button>
+  </form>
+  <form method="dialog"><button class="ghost">Close</button></form>
+</dialog>
+
+<!-- Library export / import -->
+<dialog id="library-dialog" class="page">
+  <button type="button" class="page-back" data-close-dialog>&lsaquo; Back</button>
+  <h2>Back up or move your library</h2>
+  <div class="stack">
+    <h3 class="set-title">Export</h3>
+    <p class="hint">One file with every song and version, your guitars, sets, tone notes, quick picks, NAM captures and pedal backups. Your API keys and tokens are left out.</p>
+    <a class="button primary" id="library-export" href="/api/library/export" download>Export library</a>
+    <h3 class="set-title">Import</h3>
+    <p class="hint">Replaces the library here with one you exported. The library here is saved first, in the app's data folder, so you can bring it back. Keys and tokens here stay as they are.</p>
+    <label class="button ghost">Choose an export... <input type="file" id="library-import" accept=".zip,application/zip" hidden></label>
+    <p class="hint" id="library-result"></p>
+  </div>
+  <form method="dialog"><button class="ghost">Close</button></form>
+</dialog>
+
+<!-- Phones on this Wi-Fi -->
+<dialog id="lan-dialog" class="page">
+  <button type="button" class="page-back" data-close-dialog>&lsaquo; Back</button>
+  <h2>Phones on this Wi-Fi</h2>
+  <p class="hint">Use the app from a phone or tablet on the same home network. Each one is paired once with a code from this screen; nothing else on the network gets in. It's plain HTTP, so only turn it on at home, on a network you trust. Sending to the pedal still goes through this computer's USB cable.</p>
+  <label class="toggle"><input type="checkbox" id="lan-enabled"> Let paired phones use the app</label>
+  <p class="hint" id="lan-status"></p>
+  <div id="lan-pair-area" hidden>
+    <button type="button" class="primary" id="lan-pair">Pair a phone</button>
+    <div id="lan-qr" class="lan-qr" hidden></div>
+    <p class="hint" id="lan-code"></p>
+  </div>
+  <h3 class="set-title">Paired</h3>
+  <ul class="lan-devices" id="lan-devices"></ul>
+  <form method="dialog"><button class="ghost">Close</button></form>
+</dialog>
+
+<!-- First-run setup -->
+<dialog id="setup-dialog" class="page">
+  <button type="button" class="page-back" data-close-dialog>&lsaquo; Back</button>
+  <h2>Welcome to Signal Chain Generator</h2>
+  <p class="hint">A few things to set up. You can come back to this from More &gt; Set up this computer.</p>
+  <ol class="setup-steps" id="setup-steps"></ol>
+  <div class="row">
+    <button type="button" class="primary" id="setup-finish">Done</button>
+    <button type="button" class="ghost" id="setup-recheck">Check again</button>
+  </div>
+</dialog>
+
+<!-- Send diagnostics -->
+<dialog id="diag-dialog" class="page">
+  <button type="button" class="page-back" data-close-dialog>&lsaquo; Back</button>
+  <h2>Send diagnostics</h2>
+  <div class="stack">
+    <p class="hint">Gathers what just happened: what this page showed and sent, the last pedal failures with their USB traffic, and the app's log, for a problem report on the app's GitHub page. Keys, emails, your home folder's name and the pedal's serial number are blanked out first. GitHub issues on a public project are public, so read it before you send.</p>
+    <p class="hint" id="diag-error" hidden></p>
+    <div class="diag-chips">
+      <button type="button" class="chip" data-diag-note="The pedal didn't change">Pedal didn't change</button>
+      <button type="button" class="chip" data-diag-note="Live edit isn't playing on the pedal">Live not playing</button>
+      <button type="button" class="chip" data-diag-note="Send to pedal failed">Send failed</button>
+      <button type="button" class="chip" data-diag-note="It sounds wrong on the pedal">Sounds wrong</button>
+      <button type="button" class="chip" data-diag-note="The app got stuck">App stuck</button>
+    </div>
+    <label>What were you doing? (optional) <textarea id="diag-note" rows="2" placeholder="e.g. toggling the delay in live edit on 1A, nothing changed on the pedal"></textarea></label>
+    <p class="hint">Sends failing? <button type="button" class="ghost" id="diag-test">Test the pedal</button> writes the preset in your send slot back to itself, unsaved, to see which part the pedal refuses. It adds the result to the note.</p>
+    <p id="diag-result" class="hint"></p>
+    <div class="row">
+      <button type="button" class="primary" id="diag-send">Send</button>
+      <button type="button" class="primary" id="diag-github" hidden>Copy and open GitHub</button>
+      <button type="button" class="ghost" id="diag-copy">Copy instead</button>
+      <button type="button" class="ghost" id="diag-save">Save as a file</button>
+    </div>
+    <details><summary>See what gets sent</summary><pre id="diag-preview" class="diag-preview"></pre></details>
+  </div>
+  <form method="dialog"><button class="ghost">Close</button></form>
+</dialog>
+
+<!-- NAM captures from TONE3000 -->
+<dialog id="nam-dialog" class="page">
+  <button type="button" class="page-back" data-close-dialog>&lsaquo; Back</button>
+  <h2>NAM captures from TONE3000</h2>
+  <div class="stack">
+    <p class="hint">The app downloads each capture's .nam (for NAM on the computer), converts it for NAM A2 Lite (for the pedal), and lists it in Settings. The one step left for you: drag each .wav from the IR folder onto its slot in HX Edit's Impulses list.</p>
+    <div id="t3k-own" class="stack">
+    <form id="t3k-key-form" class="row">
+      <label>TONE3000 publishable key <input name="tone3000_key" placeholder="t3k_pub_... (leave blank to keep current)" autocomplete="off"></label>
+      <button type="submit" class="ghost">Save key</button>
+    </form>
+    <p class="hint">Make one free at tone3000.com &gt; Settings &gt; API Keys. Use the t3k_pub_ key, never the t3k_cs_ secret.</p>
+    <p><span id="t3k-status"></span> <button type="button" class="ghost" id="t3k-signin">Sign in to TONE3000</button> <button type="button" class="ghost" id="t3k-signout">Sign out</button></p>
+    </div>
+    <p class="hint" id="t3k-shared" hidden></p>
+    <p><button type="button" class="primary" id="nam-starter">Install the starter library</button> <span class="hint">20 well-reviewed captures into IR slots 101-120 (docs/nam.md lists them).</span></p>
+    <p><button type="button" class="ghost" id="nam-full-rig">Install the full-rig pack</button> <span class="hint">15 more captures that include their cab, into IR slots 121-135: no cab block needed, so they fit beside Poly Capo.</span></p>
+    <form id="t3k-search-form" class="row">
+      <label>Find a capture <input name="q" placeholder="e.g. Fender Twin, JCM800, Bassman" autocomplete="off"></label>
+      <button type="submit" class="ghost">Search</button>
+    </form>
+    <div id="t3k-results"></div>
+    <form id="nam-add-form" class="stack">
+      <label>TONE3000 tone link (or its number) <input name="tone" placeholder="https://www.tone3000.com/tones/...-12345" required></label>
+      <div class="row">
+        <label>IR slot <input name="slot" type="number" min="1" max="128" placeholder="- for computer only"></label>
+        <label>Name <input name="name" placeholder="short, e.g. Plexi Crunch"></label>
+      </div>
+      <label>Which model in the pack <input name="model" placeholder="words from its name (blank: the first one)"></label>
+      <label>What it is <input name="description" placeholder="amp and the artists it suits (blank: from TONE3000)"></label>
+      <button type="submit" class="ghost">Add this capture</button>
+    </form>
+    <pre id="nam-log" class="hint" hidden></pre>
+    <p class="hint t3k-credit">Captures by their creators on <a href="https://www.tone3000.com" target="_blank" rel="noopener">TONE3000</a>, the free library of NAM captures and IRs. Each capture stays its creator's: keep the files to yourself and check a capture's license on TONE3000 before sharing it.</p>
+    <p><a class="button ghost" id="nam-download" href="/api/nam/download" download>Download the IR files</a>
+       <button type="button" class="ghost" id="nam-open-folder">Open the IR folder</button></p>
+  </div>
+  <form method="dialog"><button class="ghost">Close</button></form>
+</dialog>
+
+<!-- Block editor -->
+<dialog id="block-dialog">
+  <h2 id="block-dialog-title">Block</h2>
+  <form id="block-form" class="stack">
+    <label>Model
+      <input name="filter" placeholder="Filter: e.g. fuzz, plate, Marshall, chorus" autocomplete="off">
+    </label>
+    <input type="hidden" name="model">
+    <div id="model-browser" class="model-browser"></div>
+    <p class="hint" id="model-info"></p>
+    <label id="position-row">Position <select name="position"></select></label>
+    <label>Footswitch
+      <select name="switch">
+        <option value="">None</option>
+        <option value="1">FS1 (snapshot up/down in 4-switch mode)</option>
+        <option value="2">FS2</option>
+        <option value="3">FS3</option>
+        <option value="4">FS4 (snapshot up/down in 4-switch mode)</option>
+        <option value="5">FS5</option>
+        <option value="6">FS6</option>
+      </select>
+    </label>
+    <label>Expression pedal
+      <select name="expression">
+        <option value="">None</option>
+        <option value="1">EXP 1</option>
+        <option value="2">EXP 2</option>
+      </select>
+    </label>
+    <div id="exp-details" class="stack">
+      <label>Pedal moves <select name="exp_param"></select></label>
+      <div class="row">
+        <label>Heel <input name="heel" type="number" step="any" placeholder="full range"></label>
+        <label>Toe <input name="toe" type="number" step="any" placeholder="full range"></label>
+      </div>
+      <p class="hint">Heel and toe use the units shown in the chain (Mix in %, Drive 0-10). Leave blank for the full range.</p>
+    </div>
+    <div class="row">
+      <button class="primary" type="submit">Apply</button>
+      <button type="button" class="ghost danger" id="block-remove">Remove block</button>
+      <button type="button" class="ghost" id="block-cancel">Cancel</button>
+    </div>
+    <p class="hint">Changes show in the chain right away; nothing is saved until you click "Save as new version".</p>
+  </form>
+</dialog>
+
+<!-- Explain a block -->
+<dialog id="explain-dialog" class="wide">
+  <h2 id="explain-title">Explain</h2>
+  <div id="explain-body"></div>
+  <div class="row">
+    <button type="button" class="ghost" id="explain-refresh">Ask again</button>
+    <button type="button" class="ghost" id="explain-close">Close</button>
+  </div>
+</dialog>
+
+<!-- Rename / duplicate -->
+<dialog id="name-dialog">
+  <h2 id="name-dialog-title">Rename this version</h2>
+  <p class="hint" id="name-dialog-hint"></p>
+  <form id="name-form" class="stack">
+    <label>Version name <input name="label" required placeholder="e.g. Live, Les Paul, quieter"></label>
+    <label>Preset name on the pedal <input name="preset_name" maxlength="16" required></label>
+    <p class="hint">Up to 16 characters: what the Stomp XL's screen and HX Edit show after you send it.</p>
+    <div class="row">
+      <button class="primary" type="submit" id="name-submit">Save</button>
+      <button type="button" class="ghost" id="name-cancel">Cancel</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- Fork -->
+<dialog id="fork-dialog">
+  <h2 id="fork-title">Fork this version</h2>
+  <p class="hint" id="fork-intro">Start a new branch from this version with a different guitar, rig, or toggles. Claude re-dials the preset from where it stands.</p>
+  <form id="fork-form" class="stack">
+    <label>Guitar <select name="guitar_id" id="fork-guitar"></select></label>
+    <label class="toggle" title="Every block stays where it is, with the same NAM capture, footswitches and gate. Claude only re-dials the values and snapshots for the guitar you pick."><input type="checkbox" name="keep_chain"> Keep the same signal chain, just re-dial the settings</label>
+    <p class="hint" id="keep-chain-hint" hidden>Keeping the chain means the same rig and toggles. Change one and Claude may rebuild the chain instead.</p>
+    <label>Output rig <select name="rig_id" id="fork-rig"></select></label>
+    <fieldset class="toggles">
+      <label class="toggle"><input type="checkbox" name="wah"> Wah</label>
+      <label class="toggle"><input type="checkbox" name="expression"> Expression</label>
+      <label class="toggle"><input type="checkbox" name="looper"> Looper</label>
+      <label class="toggle"><input type="checkbox" name="capo"> Poly Capo</label>
+      <label class="toggle" title="An off drive just before the amp, for Stage mode's Gain boost"><input type="checkbox" name="stage_boost"> Stage boost</label>
+      <label class="toggle" data-nam-only hidden title="NAM rigs: use only captures that include their cab, so the chain needs no cab block. Handy when Poly Capo leaves no DSP for a cab."><input type="checkbox" name="full_rig"> Full-rig captures only (no cab)</label>
+    </fieldset>
+    <div class="dsp-room" data-room></div>
+    <label>Label <input name="label" placeholder="e.g. Les Paul live version"></label>
+    <label>Extra instructions <input name="instructions"></label>
+    <button class="primary" type="submit" id="fork-submit">Fork</button>
+  </form>
+  <form method="dialog"><button class="ghost">Cancel</button></form>
+</dialog>
+
+<!-- Push -->
+<dialog id="push-dialog">
+  <h2>Send to pedal</h2>
+  <p class="hint">This overwrites the slot you pick; its current preset is backed up first. Close HX Edit before sending, but keep it installed.</p>
+  <form id="push-form" class="stack">
+    <label>Slot <select name="slot" id="slot-select"></select></label>
+    <button type="button" class="ghost" id="load-slot-names">Read preset names from pedal</button>
+    <button class="primary" type="submit">Send to pedal</button>
+  </form>
+  <form method="dialog"><button class="ghost">Cancel</button></form>
+</dialog>
+
+<!-- Pick several: songs for a set, sets for a song -->
+<dialog id="pick-dialog" class="pick-dialog">
+  <h2 id="pick-title">Pick</h2>
+  <p class="hint" id="pick-hint"></p>
+  <input id="pick-filter" type="search" placeholder="Search">
+  <form id="pick-form" class="stack">
+    <ul id="pick-list" class="pick-list"></ul>
+    <button type="button" class="ghost" id="pick-extra" hidden></button>
+    <div class="row">
+      <button class="primary" type="submit">Save</button>
+      <button type="button" class="ghost" id="pick-cancel">Cancel</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- Send a whole set to consecutive slots -->
+<dialog id="set-push-dialog">
+  <h2 id="set-push-title">Send set to pedal</h2>
+  <p class="hint">Each song's open version goes to the next slot, in set order. Those slots are overwritten (each is backed up first). Close HX Edit before sending.</p>
+  <label>Slots <select id="set-push-start"></select></label>
+  <ol id="set-push-list" class="set-push-list"></ol>
+  <div class="row">
+    <button class="primary" type="button" id="set-push-go">Send</button>
+    <button type="button" class="ghost" id="set-push-cancel">Cancel</button>
+  </div>
+</dialog>
+
+<!-- Leaving a song in Stage mode with changes -->
+<dialog id="stage-leave">
+  <h2>Keep your changes?</h2>
+  <p class="hint"><span id="stage-leave-count"></span> to this song. Keep saves a starred Rehearsal version and saves it on the pedal. Toss puts the pedal back as it was.</p>
+  <div class="stack">
+    <button class="primary" type="button" data-leave="keep">Keep</button>
+    <button class="ghost danger" type="button" data-leave="toss">Toss</button>
+    <button class="ghost" type="button" data-leave="stay">Stay on this song</button>
+  </div>
+</dialog>
+
+<datalist id="tag-options"></datalist>
+<div id="toast" class="toast" hidden></div>
+<!-- Unsaved edits: Live switch, Discard and Save, always in reach -->
+<div id="save-bar" class="save-bar" hidden></div>
+<!-- Pedal close-up: a bottom sheet on a phone, a side panel on a computer -->
+<div id="closeup-scrim" class="closeup-scrim" hidden></div>
+<aside id="closeup" class="closeup" hidden aria-label="Pedal close-up"></aside>
+
+<nav id="tabbar" class="tabbar" aria-label="Main">
+  <button type="button" data-nav="#/" data-tab="songs"><i aria-hidden="true">&#9835;</i>Songs</button>
+  <button type="button" data-nav="#/sets" data-tab="sets"><i aria-hidden="true">&#9776;</i>Sets</button>
+  <button type="button" data-nav="#/pedal" data-tab="pedal"><i aria-hidden="true">&#9673;</i>Pedal</button>
+  <button type="button" data-nav="#/more" data-tab="more"><i aria-hidden="true">&#8943;</i>More</button>
+</nav>
+
+<script src="/static/relay.js"></script>
+<script src="/static/app.js"></script>
+<script src="/static/closeup.js"></script>
+<script src="/static/desk.js"></script>
+<script src="/static/stage.js"></script>
+</body>
+</html>

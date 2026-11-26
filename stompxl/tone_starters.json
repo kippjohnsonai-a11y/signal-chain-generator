@@ -1,0 +1,135 @@
+{
+  "about": "Suggested starting points for a rock cover band, offered in the My tone dialog. Each is added only when the player presses Add.",
+  "tweaks": [
+    {
+      "id": "band-lows-highs",
+      "text": "Band mix with a bass player: the bass and kick own the low end. Low cut 110-120 Hz on every tone (130-150 Hz on high-gain rhythm), on the cab or a post-amp EQ, and high cut around 7-8 kHz (6-6.5 kHz on high gain) to take off fizz."
+    },
+    {
+      "id": "mud-400",
+      "text": "Cut the mud on every tone, every guitar and every rig: a Parametric EQ cut of 4-5 dB at 420 Hz (Q about 1), right after the amp and cab. With a full-rig NAM capture (cab included) it goes right after the capture."
+    },
+    {
+      "id": "scoop",
+      "text": "Mid scoops are welcome: on high-gain amps, especially the Cali Rectifire and other Mesa-style amps, scoop the mids (amp Mid 2-4) for a tight, heavy rhythm tone. Use the solo snapshot's boost, not more treble, when a lead needs to cut through."
+    },
+    {
+      "id": "less-gain",
+      "text": "Use about 20-30% less amp gain than sounds best on its own: in a band, too much gain turns to mush. Get extra sustain from a low-gain, high-level drive in front instead."
+    },
+    {
+      "id": "ambience",
+      "text": "Keep ambience tighter than the record: reverb Mix 10-20%, delay Mix 15-25%, switched on for leads and off for rhythm. Low cut reverb and delay at 150-200 Hz and high cut them at 5-6 kHz so they add space, not mud or hiss."
+    },
+    {
+      "id": "levels",
+      "text": "Level-match the snapshots: rhythm sections at the same loudness, and the solo or lead snapshot 2-3 dB louder by switching on a boost or drive whose Level sits that much hot, never more than 4 dB."
+    },
+    {
+      "id": "mono",
+      "text": "Assume a mono PA: nothing that relies on hard-panned ping-pong or wide stereo, and no effect that cancels or vanishes when summed to mono."
+    },
+    {
+      "id": "strat-bridge",
+      "pickups": "single",
+      "text": "Single coils: tame the bridge pickup's ice-pick with Treble or Presence 0.5-1 lower and a high cut near 6.5 kHz on driven tones."
+    },
+    {
+      "id": "humbucker-lows",
+      "pickups": "humbucker",
+      "text": "Humbuckers: low cut at the top of the range (120 Hz, 150 Hz on high gain) on top of the 420 Hz cut, and about 10% less gain on neck-pickup leads."
+    }
+  ],
+  "gear_notes": [
+    {
+      "id": "parametric",
+      "kind": "model",
+      "name": "Parametric",
+      "text": "My default band EQ, right after the amp/cab (or a full-rig NAM capture): Low Cut 110-120 Hz (130-150 Hz on high gain), 420 Hz at -4 to -5 dB with Q about 1, High Cut 7-8 kHz. Leave the other bands flat unless the song needs them."
+    },
+    {
+      "id": "scream-808",
+      "kind": "model",
+      "name": "Scream 808",
+      "text": "In front of a high-gain amp it's a tightener: Gain 0-2, Tone 5-6, Level 7-8. In front of a clean or crunch amp it's a mid-hump solo boost."
+    },
+    {
+      "id": "minotaur",
+      "kind": "model",
+      "name": "Minotaur",
+      "text": "Transparent solo boost: Gain 2-3, Treble at noon, Output for about +3 dB, switched on in the lead snapshot."
+    },
+    {
+      "id": "cali-rectifire",
+      "kind": "model",
+      "name": "Cali Rectifire",
+      "text": "Scoop the mids: Mid 2-4, Bass moderate (4-5) and tighten the lows with the low cut instead, Presence to taste. Pair with the Parametric's 420 Hz cut and a Scream 808 tightener in front for rhythm."
+    },
+    {
+      "id": "reverbs",
+      "kind": "category",
+      "name": "Reverb",
+      "text": "Low cut 150-200 Hz, high cut 5-6 kHz, Mix 10-20% in the band (more only for a part that's clearly ambient). Keep it last, after the delay."
+    },
+    {
+      "id": "delays",
+      "kind": "category",
+      "name": "Delay",
+      "text": "Synced to the song's tempo, trails on, high cut 4-6 kHz so repeats sit behind the guitar. Mix 15-25% on leads, about 10% on rhythm."
+    },
+    {
+      "id": "drives",
+      "kind": "category",
+      "name": "Distortion",
+      "text": "Into an amp that's already crunchy, use it as a boost (low Gain, high Level), not as more distortion. Don't stack two high-gain drives."
+    },
+    {
+      "id": "dynamics",
+      "kind": "category",
+      "name": "Dynamics",
+      "text": "Compressors stay light (2-4 dB of gain reduction) for cleans, funk and arpeggios, and off on high gain. Gates sit just above the hiss so they don't chop note tails."
+    },
+    {
+      "id": "mod",
+      "kind": "category",
+      "name": "Modulation",
+      "text": "Mix lower than sounds good alone (under about 40%) and mono-safe; chorus mostly on cleans."
+    },
+    {
+      "id": "nam-recto",
+      "kind": "nam",
+      "name": "Dual Rectifier",
+      "text": "Scoop the mids and tighten it: Parametric after it with -5 dB at 420 Hz, low cut 130-150 Hz, high cut 6.5 kHz; Scream 808 in front as a tightener and a Noise Gate before the drives."
+    },
+    {
+      "id": "nam-6505",
+      "kind": "nam",
+      "name": "6505 Lead",
+      "text": "Scream 808 tightener in front, Noise Gate, then a Parametric after it: low cut 130-150 Hz, -5 dB at 420 Hz, high cut 6 kHz for the fizz. Mid scoops suit it."
+    },
+    {
+      "id": "nam-800",
+      "kind": "nam",
+      "name": "JCM800",
+      "text": "The top end can fizz: high cut about 6.5 kHz on top of the usual -4 to -5 dB at 420 Hz. Push solos with the Minotaur rather than more gain."
+    },
+    {
+      "id": "nam-plexi",
+      "kind": "nam",
+      "name": "Plexi",
+      "text": "With humbuckers it gets woolly: low cut 120 Hz with the usual 420 Hz cut. With a Strat bridge pickup, high cut about 7 kHz too."
+    },
+    {
+      "id": "nam-twin",
+      "kind": "nam",
+      "name": "Twin Reverb",
+      "text": "Clean platform: the usual low cut and 420 Hz cut still apply; a light compressor (Deluxe Comp) for funk or strummed parts."
+    },
+    {
+      "id": "nam-ac30",
+      "kind": "nam",
+      "name": "AC30 Greenback",
+      "text": "Chime can turn harsh at volume: if it's too bright, cut 2 dB around 3 kHz rather than rolling off the whole top."
+    }
+  ]
+}

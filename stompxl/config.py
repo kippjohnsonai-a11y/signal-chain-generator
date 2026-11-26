@@ -1,0 +1,105 @@
+"""Where the app keeps its data, and the handful of settings set once.
+
+Everything lives under one data directory: the SQLite library, device backups,
+and ``settings.json`` (which may hold the Anthropic API key, so it is written
+readable by the owner only).
+
+A guest signed in through Cloudflare (see :mod:`stompxl.users`) gets a data
+directory of their own inside the owner's, so everything below follows them.
+"""
+
+from __future__ import annotations
+
+import json
+import os
+import stat
+import sys
+from pathlib import Path
+from typing import Any
+
+from . import APP_NAME
+
+DATA_DIR_ENV = "STOMPXL_DATA_DIR"
+
+#: The data folder's name before the app was renamed (Nov 2026).
+LEGACY_FOLDER = "StompXL Tone Studio"
+
+
+def base_dir() -> Path:
+    """The owner's data directory, whoever is asking."""
+    override = os.environ.get(DATA_DIR_ENV)
+    if override:
+        path = Path(override).expanduser()
+    elif sys.platform == "darwin":
+        support = Path.home() / "Library" / "Application Support"
+        # Installs from before the rename keep their library where it is.
+        legacy = support / LEGACY_FOLDER
+        path = legacy if legacy.is_dir() else support / APP_NAME
+    else:
+        path = Path.home() / ".stompxl"
+    path.mkdir(parents=True, exist_ok=True)
+    return path
+
+
+def data_dir() -> Path:
+    """The data directory of whoever this request is for."""
+    from . import users
+
+    base = base_dir()
+    if not users.is_guest():
+        return base
+    path = users.guest_dir(base, users.current())
+    path.mkdir(parents=True, exist_ok=True)
+    return path
+
+
+def db_path() -> Path:
+    return data_dir() / "library.sqlite3"
+
+
+def backups_dir() -> Path:
+    path = data_dir() / "backups"
+    path.mkdir(parents=True, exist_ok=True)
+    return path
+
+
+def _settings_path() -> Path:
+    return data_dir() / "settings.json"
+
+
+def _read(path: Path) -> dict[str, Any]:
+    try:
+        return json.loads(path.read_text())
+    except (OSError, ValueError):
+        return {}
+
+
+def read_settings() -> dict[str, Any]:
+    return _read(_settings_path())
+
+
+def get_setting(key: str, default: Any = None) -> Any:
+    return read_settings().get(key, default)
+
+
+def write_settings(values: dict[str, Any]) -> None:
+    settings = read_settings()
+    for key, value in values.items():
+        if value is None:
+            settings.pop(key, None)
+        else:
+            settings[key] = value
+    path = _settings_path()
+    tmp = path.with_suffix(".tmp")
+    tmp.write_text(json.dumps(settings, indent=2))
+    tmp.chmod(stat.S_IRUSR | stat.S_IWUSR)
+    tmp.replace(path)
+
+
+def anthropic_api_key() -> str | None:
+    """The environment wins over the saved key, so a shell export can override.
+
+    Guests use the owner's key: they can't see or set one of their own.
+    """
+    return (os.environ.get("ANTHROPIC_API_KEY")
+            or _read(base_dir() / "settings.json").get("anthropic_api_key") or None)

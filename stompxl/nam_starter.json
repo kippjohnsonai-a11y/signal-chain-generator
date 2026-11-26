@@ -1,0 +1,165 @@
+{
+ "about": "The starter NAM library: 20 well-reviewed TONE3000 A2 captures for User IR slots 101-120 (picked 2026-11-07 by downloads, favorites and comments).",
+ "captures": [
+  {
+   "slot": 101,
+   "tone": 69174,
+   "name": "Deluxe Reverb Clean",
+   "description": "Fender Deluxe Reverb, sparkling clean; soul, Stevie Wonder, country, Mayer",
+   "cab": true,
+   "model": ""
+  },
+  {
+   "slot": 102,
+   "tone": 35497,
+   "name": "Twin Reverb",
+   "description": "Fender '65 Twin Reverb, loud clean to edge of breakup; funk, EWF, Beatles late era, Jack White, Frusciante cleans",
+   "cab": true,
+   "model": ""
+  },
+  {
+   "slot": 103,
+   "tone": 10912,
+   "name": "JC-120 Clean",
+   "description": "Roland Jazz Chorus, glassy solid-state clean; funk, EWF, 80s new wave",
+   "cab": true,
+   "model": ""
+  },
+  {
+   "slot": 104,
+   "tone": 54580,
+   "name": "Tweed Deluxe",
+   "description": "1960 Fender Tweed Deluxe 5E3, raw breakup; blues, garage, Neil Young",
+   "cab": true,
+   "model": "57"
+  },
+  {
+   "slot": 105,
+   "tone": 68651,
+   "name": "Super Reverb",
+   "description": "Fender '65 Super Reverb, warm clean to bluesy breakup; SRV, blues",
+   "cab": false,
+   "model": ""
+  },
+  {
+   "slot": 106,
+   "tone": 2696,
+   "name": "AC30 Greenback",
+   "description": "Vox AC30 Top Boost, chimey crunch; Beatles, The Killers, Foo Fighters cleans",
+   "cab": true,
+   "model": ""
+  },
+  {
+   "slot": 107,
+   "tone": 31267,
+   "name": "AC30 CH Pushed",
+   "description": "Vox AC30 Top Boost pushed hard; Brian May, U2, Britpop, The Killers",
+   "cab": false,
+   "model": ""
+  },
+  {
+   "slot": 108,
+   "tone": 33505,
+   "name": "JTM45",
+   "description": "Marshall JTM45, low gain British crunch; early Clapton, Frusciante cleans",
+   "cab": false,
+   "model": ""
+  },
+  {
+   "slot": 109,
+   "tone": 40971,
+   "name": "Plexi",
+   "description": "Marshall 1959 Super Lead Plexi, classic rock crunch; Hendrix, Zeppelin, AC/DC, RHCP Frusciante",
+   "cab": false,
+   "model": "Channel I High Jumped"
+  },
+  {
+   "slot": 110,
+   "tone": 70521,
+   "name": "JMP 2204",
+   "description": "1980 Marshall JMP, punchy rock and punk; MCR, Green Day, 80s rock",
+   "cab": true,
+   "model": "57"
+  },
+  {
+   "slot": 111,
+   "tone": 89825,
+   "name": "JCM800",
+   "description": "Marshall JCM800 2203, hot-rodded rock; Slash, MCR, 80s metal",
+   "cab": true,
+   "model": ""
+  },
+  {
+   "slot": 112,
+   "tone": 6233,
+   "name": "Hiwatt DR103",
+   "description": "Hiwatt Custom 100, huge clean headroom; The Who, Pink Floyd",
+   "cab": false,
+   "model": ""
+  },
+  {
+   "slot": 113,
+   "tone": 61710,
+   "name": "Silvertone",
+   "description": "Silvertone Twin Twelve, trashy garage breakup; Jack White, White Stripes",
+   "cab": true,
+   "model": ""
+  },
+  {
+   "slot": 114,
+   "tone": 69206,
+   "name": "Dual Rectifier",
+   "description": "Mesa Dual Rectifier Modern, thick high gain; Foo Fighters, MCR, nu metal",
+   "cab": true,
+   "model": "FR MBDR MW Red Mdn - 1 - 4FB UR SM57a"
+  },
+  {
+   "slot": 115,
+   "tone": 6406,
+   "name": "Mark IV Lead",
+   "description": "Mesa Mark IV lead, tight singing lead; Metallica, Petrucci",
+   "cab": false,
+   "model": ""
+  },
+  {
+   "slot": 116,
+   "tone": 72172,
+   "name": "6505 Lead",
+   "description": "Peavey 6505 lead, metal; metalcore, MCR heavy songs",
+   "cab": true,
+   "model": ""
+  },
+  {
+   "slot": 117,
+   "tone": 72085,
+   "name": "Friedman BE",
+   "description": "Friedman BE-100, modern hot-rod Marshall; hard rock",
+   "cab": false,
+   "model": ""
+  },
+  {
+   "slot": 118,
+   "tone": 46654,
+   "name": "Soldano SLO",
+   "description": "Soldano SLO-100 overdrive, smooth high gain lead",
+   "cab": false,
+   "model": ""
+  },
+  {
+   "slot": 119,
+   "tone": 90925,
+   "name": "Orange OR60",
+   "description": "Orange OR, fat British crunch; stoner rock, indie",
+   "cab": false,
+   "model": "AMP"
+  },
+  {
+   "slot": 120,
+   "tone": 30435,
+   "name": "Dumble ODS",
+   "description": "Dumble Overdrive Special, smooth touch-sensitive lead; John Mayer, Robben Ford",
+   "cab": false,
+   "model": ""
+  }
+ ]
+}

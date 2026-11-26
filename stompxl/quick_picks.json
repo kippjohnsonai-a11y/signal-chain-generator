@@ -1,0 +1,80 @@
+{
+  "_about": "Starting quick picks for the pedal close-up, seeded into the library once. Edit them in the app (My tone > Quick picks), not here. Changes are in display units: 'Presence -1' nudges, 'LowCut = 100' sets, 'Decay x0.75' scales. 'A|B' means whichever the block has.",
+  "main": {
+    "Amp": ["Drive", "Bass", "Mid", "Treble", "Presence", "ChVol"],
+    "Cab": ["LowCut", "HighCut", "Mic", "Distance", "Level"],
+    "Distortion": ["Gain|Drive|Distortion|Fuzz|Sustain", "Tone", "Level|Volume"],
+    "Delay": ["SyncSelect1", "Time", "Feedback", "Mix"],
+    "Reverb": ["Mix", "Decay", "Predelay|PreDelay", "HighCut", "LowCut"],
+    "Modulation": ["Speed|Rate", "Depth|Intensity", "Mix"],
+    "Dynamics": ["Threshold|Sensitivity", "Ratio", "Mix", "Decay", "Level"],
+    "EQ": ["LowGain", "MidFreq", "MidGain", "HighGain", "LowCut", "HighCut", "Level"],
+    "Wah": ["Pedal", "Mix", "Level"],
+    "Volume/Pan": ["Pedal", "Gain"]
+  },
+  "picks": {
+    "Amp": [
+      ["Less fizz", "Presence -1, Treble -0.5"],
+      ["More cut", "Mid +1, Presence +0.5"],
+      ["Scoop mids", "Mid -1.5"],
+      ["Tighter", "Bass -1, Drive -0.5"],
+      ["More gain", "Drive +1"],
+      ["Less gain", "Drive -1"],
+      ["Louder", "ChVol +1"],
+      ["Quieter", "ChVol -1"]
+    ],
+    "Cab": [
+      ["Low cut 80", "LowCut = 80"],
+      ["Low cut 100", "LowCut = 100"],
+      ["Low cut 120", "LowCut = 120"],
+      ["High cut 10k", "HighCut = 10000"],
+      ["High cut 8k", "HighCut = 8000"],
+      ["High cut 6k", "HighCut = 6000"],
+      ["Mic further back", "Distance +1"]
+    ],
+    "Distortion": [
+      ["Boost only", "Gain|Drive|Distortion|Fuzz|Sustain = 1, Level|Volume +2"],
+      ["Tighter", "Tone +1, Gain|Drive|Distortion|Fuzz|Sustain -1"],
+      ["Smoother", "Tone -1"],
+      ["Louder", "Level|Volume +1"],
+      ["Quieter", "Level|Volume -1"]
+    ],
+    "Delay": [
+      ["1/4", "TempoSync1 = On, SyncSelect1 = 1/4"],
+      ["Dotted 1/8", "TempoSync1 = On, SyncSelect1 = 1/8 Dotted"],
+      ["1/8", "TempoSync1 = On, SyncSelect1 = 1/8"],
+      ["Slapback", "TempoSync1 = Off, Time = 0.12, Feedback = 0"],
+      ["Fewer repeats", "Feedback -10"],
+      ["More repeats", "Feedback +10"],
+      ["Further back", "Mix -5"],
+      ["Up front", "Mix +5"]
+    ],
+    "Reverb": [
+      ["Drier", "Mix -5"],
+      ["Wetter", "Mix +5"],
+      ["Shorter", "Decay x0.75"],
+      ["Longer", "Decay x1.33"],
+      ["Darker", "HighCut -2000"],
+      ["Less mud", "LowCut = 150"]
+    ],
+    "Modulation": [
+      ["Subtle", "Depth|Intensity x0.8"],
+      ["Deeper", "Depth|Intensity x1.25"],
+      ["Slower", "Speed|Rate x0.8"],
+      ["Faster", "Speed|Rate x1.25"],
+      ["Sync to tempo", "TempoSync1 = On"]
+    ],
+    "Dynamics": [
+      ["Gentler", "Threshold +3, Sensitivity -1, Mix = 50", "Comp"],
+      ["More squash", "Threshold -3, Sensitivity +1", "Comp"],
+      ["Cleaner stops", "Threshold +3", "Gate"],
+      ["Let notes ring", "Threshold -3", "Gate"]
+    ],
+    "EQ": [
+      ["420 Hz cut", "MidFreq = 420, MidGain = -4.5"],
+      ["Low cut 100", "LowCut = 100"],
+      ["High cut 7k", "HighCut = 7000"],
+      ["More body", "LowGain +1.5"]
+    ]
+  }
+}

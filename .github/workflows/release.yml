@@ -1,0 +1,39 @@
+# Publish to PyPI when a version tag (v0.2.0) is pushed. Uses PyPI trusted
+# publishing: no token is stored anywhere. It does nothing until the
+# signal-chain-generator project on PyPI names this repository, this workflow
+# file and the "pypi" environment as a trusted publisher.
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: pypi
+    permissions:
+      contents: read
+      id-token: write  # trusted publishing to PyPI
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - name: Install uv
+        run: pipx install uv==0.11.32
+      - name: Test
+        run: uv run --locked --extra dev pytest -q
+      - name: Check the tag matches the version
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          version=$(uv run --locked python -c "import tomllib; print(tomllib.load(open('pyproject.toml','rb'))['project']['version'])")
+          test "v$version" = "$TAG" || { echo "Tag $TAG doesn't match version $version in pyproject.toml"; exit 1; }
+      - name: Build
+        run: uv build
+      - name: Publish
+        run: uv publish --trusted-publishing always

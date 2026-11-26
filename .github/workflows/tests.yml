@@ -1,0 +1,30 @@
+# Tests and lint on every pull request and push to main.
+name: Tests
+
+on:
+  pull_request:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - name: Install uv
+        run: pipx install uv==0.11.32
+      - name: Lint
+        run: uv run --locked --extra dev ruff check stompxl
+      - name: Test
+        run: uv run --locked --extra dev pytest -q

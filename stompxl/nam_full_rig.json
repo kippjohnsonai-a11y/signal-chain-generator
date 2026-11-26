@@ -1,0 +1,125 @@
+{
+ "about": "The full-rig NAM pack: 15 TONE3000 A2 captures that include their cab (no cab block needed, for presets where Poly Capo leaves no DSP for one), User IR slots 121-135. Fills the starter library's amp-only gaps (Plexi, JTM45, Hiwatt, Mark, Friedman, Soldano, Orange, Dumble, Super Reverb/Bassman) plus Matchless, Bogner and Princeton. Picked 2026-11-09 by downloads and favorites; every page shows Amp + Cab.",
+ "captures": [
+  {
+   "slot": 121,
+   "tone": 39143,
+   "name": "Plexi 1959",
+   "description": "Marshall 1959 Super Lead 100W, full rig (G12, SM57 + condenser); classic rock crunch, Hendrix, Zeppelin, AC/DC",
+   "cab": true,
+   "model": ""
+  },
+  {
+   "slot": 122,
+   "tone": 75856,
+   "name": "Plexi Crunch",
+   "description": "Marshall 1987X hot-rodded crunch into a 1960 4x12 (Greenback + V30); hard rock, 80s rhythm",
+   "cab": true,
+   "model": "full capture"
+  },
+  {
+   "slot": 123,
+   "tone": 76417,
+   "name": "JTM45 Crunch",
+   "description": "1964 Marshall JTM-45 into a 1966 4x12 with G12 Alnicos; blues and early rock, Clapton, Cream",
+   "cab": true,
+   "model": "MRSH JT45RS I Crunch BAL2 CAB"
+  },
+  {
+   "slot": 124,
+   "tone": 2711,
+   "name": "Hiwatt Rig",
+   "description": "1972 Hiwatt DR103 clean, Fane speakers, SM57; Gilmour, Townshend, big headroom cleans",
+   "cab": true,
+   "model": "HiWatt_full_rig_2"
+  },
+  {
+   "slot": 125,
+   "tone": 81803,
+   "name": "Mark IIC+",
+   "description": "Mesa Boogie Mark IIC+ full rig; Metallica, Dream Theater, singing lead",
+   "cab": true,
+   "model": ""
+  },
+  {
+   "slot": 126,
+   "tone": 79626,
+   "name": "Friedman Rig",
+   "description": "Friedman BE-100 with a Tube Screamer, Greenback/V30 blend; modern hot-rod Marshall rock",
+   "cab": true,
+   "model": "Friedman TS GB R121 V30 E906 Blend 1"
+  },
+  {
+   "slot": 127,
+   "tone": 44019,
+   "name": "Soldano Rig",
+   "description": "Soldano SLO-100 crunch into a Mesa 4x12; 80s/90s rock rhythm and lead, Knopfler's Money for Nothing",
+   "cab": true,
+   "model": "Soldano SLO 100 SLO CRUNCH"
+  },
+  {
+   "slot": 128,
+   "tone": 28956,
+   "name": "Rockerverb",
+   "description": "Orange Rockerverb 50 full rig, unboosted; stoner, doom, modern rock",
+   "cab": true,
+   "model": "Full Rig L"
+  },
+  {
+   "slot": 129,
+   "tone": 72478,
+   "name": "Dumble Clean",
+   "description": "1974 Dumble Overdrive Special #124 clean into a 2x12 with G12Ms; Robben Ford, Mayer, jazz cleans",
+   "cab": true,
+   "model": "DUMBLE ODS 124 CH NORMAL JAZZ CLEAN"
+  },
+  {
+   "slot": 130,
+   "tone": 72478,
+   "name": "Dumble Lead",
+   "description": "1974 Dumble Overdrive Special #124 lead channel; SRV, Robben Ford, smooth singing overdrive",
+   "cab": true,
+   "model": "DUMBLE ODS 124 HI-GAIN LEAD"
+  },
+  {
+   "slot": 131,
+   "tone": 88724,
+   "name": "Super Lead",
+   "description": "Fender '65 Super Reverb pushed to lead, EV speakers; SRV, blues lead",
+   "cab": true,
+   "model": "FDR SR65 CAB Lead"
+  },
+  {
+   "slot": 132,
+   "tone": 48876,
+   "name": "62 Bassman",
+   "description": "1962 Fender Blonde Bassman crunch, blended 2x12; Chicago blues, roots rock",
+   "cab": true,
+   "model": "SV 62 BSMN CAB B V10 T8 B10"
+  },
+  {
+   "slot": 133,
+   "tone": 71316,
+   "name": "Matchless DC30",
+   "description": "Matchless DC-30 edge of breakup, Greenbacks; boutique chime, Brit-pop, country rock",
+   "cab": true,
+   "model": "MATCH DC-30 EDGE BRI"
+  },
+  {
+   "slot": 134,
+   "tone": 69305,
+   "name": "Bogner XT",
+   "description": "Bogner Ecstasy 101B channel 3; plexi-style crunch to high gain, Steve Stevens, modern rock lead",
+   "cab": true,
+   "model": "BOG XT III Gain BRI3 CAB"
+  },
+  {
+   "slot": 135,
+   "tone": 2381,
+   "name": "Princeton",
+   "description": "Firebelly PR3512SE (modded Princeton) full rig; small-amp clean to edge, studio country and pop",
+   "cab": true,
+   "model": "Firebelly PR3512 Vol 4 Fat Switch R92"
+  }
+ ]
+}

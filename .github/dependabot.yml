@@ -1,0 +1,26 @@
+# Dependency updates. Security fixes arrive as soon as an advisory lands
+# (Dependabot security updates, enabled in repo settings); routine version
+# bumps are batched monthly and wait 7 days after release (cooldown) so a
+# freshly hijacked version has time to be caught and pulled.
+version: 2
+updates:
+  - package-ecosystem: uv
+    directory: "/"
+    schedule:
+      interval: monthly
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 5
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: monthly
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 5
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]
