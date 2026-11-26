@@ -64,8 +64,9 @@ KNOWN_BUNDLE_PATHS: tuple[Path, ...] = (
 )
 
 #: Where the data files sit inside an install, tried in order: the macOS
-#: bundle's Resources, then a Windows install folder and its usual subfolders.
-_RESOURCE_DIRS = ("Contents/Resources", ".", "Resources", "resources", "data")
+#: bundle's Resources, then the Windows install's ``res`` folder
+#: (``C:\Program Files (x86)\Line6\HX Edit\res\Helix.sym``) and a few fallbacks.
+_RESOURCE_DIRS = ("Contents/Resources", "res", ".", "Resources", "data")
 
 
 def _resources(install: Path) -> Path | None:

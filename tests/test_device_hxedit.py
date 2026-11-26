@@ -162,15 +162,15 @@ def test_a_corrupt_config_file_is_treated_as_empty(tmp_path: Path) -> None:
 
 def test_a_windows_install_folder_is_found(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """On Windows the data files sit in a plain install folder, not a bundle."""
-    install = tmp_path / "Line6" / "HX Edit"
-    install.mkdir(parents=True)
-    (install / "Helix.sym").write_text("[]", encoding="utf-8")
-    (install / "amp.models").write_text("[]", encoding="utf-8")
+    install = tmp_path / "Line6" / "HX Edit"  # as HX Edit installs on Windows
+    (install / "res").mkdir(parents=True)
+    (install / "res" / "Helix.sym").write_text("[]", encoding="utf-8")
+    (install / "res" / "amp.models").write_text("[]", encoding="utf-8")
     monkeypatch.setattr(hxedit, "KNOWN_BUNDLE_PATHS", (tmp_path / "missing", install))
 
     assert hxedit.find_hx_edit() == install
-    assert hxedit.symbol_table_path() == install / "Helix.sym"
-    assert hxedit.amp_models_path() == install / "amp.models"
+    assert hxedit.symbol_table_path() == install / "res" / "Helix.sym"
+    assert hxedit.amp_models_path() == install / "res" / "amp.models"
 
 
 def test_windows_installs_cover_both_program_files(monkeypatch: pytest.MonkeyPatch) -> None:
