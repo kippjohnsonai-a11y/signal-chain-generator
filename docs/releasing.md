@@ -50,8 +50,12 @@ To build an unsigned app on your own Mac: `bash scripts/build-mac-app.sh 0.2.0`.
 1. Set `version` in `pyproject.toml` (for example `0.2.0`) and merge it.
 2. Tag that commit and push the tag: `git tag v0.2.0 && git push origin v0.2.0`.
 3. The **Release** workflow runs the tests, checks that the tag matches the
-   version, builds, and publishes to PyPI, then builds the Mac app and
-   attaches it to the GitHub release.
+   version, builds, and publishes to PyPI, then builds the Mac app and the
+   Windows installer and attaches both to the GitHub release.
+
+To build the Windows installer yourself, on Windows with PowerShell 7:
+`pwsh -File scripts/build-windows-installer.ps1 0.2.1` (it fetches uv and, if
+needed, Inno Setup). The installer isn't code-signed yet.
 
 A version on PyPI can't be replaced, only followed by a newer one.
 
