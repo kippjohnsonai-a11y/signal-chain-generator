@@ -369,6 +369,7 @@ class SettingsIn(BaseModel):
     claude_effort: str | None = None
     exp_pedal: str | None = None
     gate_mode: str | None = None
+    pedal_model: str | None = None
     default_slot: int | None = None
     nam_captures: list[dict[str, Any]] | None = None
     tone3000_key: str | None = None
@@ -572,6 +573,8 @@ def create_app(library: Library | None = None, caller_factory: Any = None) -> Fa
                 "efforts": list(claude.EFFORTS),
                 "exp_pedal": settings.get("exp_pedal") or xl.DEFAULT_EXP_PEDAL,
                 "exp_pedals": xl.EXP_PEDAL_SETUPS,
+                "pedal_model": xl.pedal().key,
+                "pedal_models": {p.key: p.name for p in xl.PEDALS.values()},
                 "gate_mode": settings.get("gate_mode") or xl.DEFAULT_GATE,
                 "gate_modes": xl.GATE_MODES,
                 "nam_captures": xl.parse_captures(settings.get("nam_captures")),
@@ -588,6 +591,9 @@ def create_app(library: Library | None = None, caller_factory: Any = None) -> Fa
                                 if users.is_guest() else None),
             },
             "slot_count": xl.SLOT_COUNT,
+            "pedal": {"key": xl.pedal().key, "name": xl.PEDAL_NAME,
+                      "short_name": xl.pedal().short_name, "bank_size": xl.BANK_SIZE,
+                      "snapshot_count": xl.SNAPSHOT_COUNT},
             "version": VERSION,
         }
 
@@ -637,6 +643,8 @@ def create_app(library: Library | None = None, caller_factory: Any = None) -> Fa
             if key and not key.startswith("t3k_pub_"):
                 raise HTTPException(400, "Use the publishable key (t3k_pub_...), never the secret one")
             values["tone3000_key"] = key or None
+        if values.get("pedal_model") and values["pedal_model"] not in xl.PEDALS:
+            raise HTTPException(400, "Unknown pedal")
         if values.get("gate_mode") and values["gate_mode"] not in xl.GATE_MODES:
             raise HTTPException(400, "Unknown noise gate setting")
         if "nam_captures" in values:
@@ -1353,7 +1361,8 @@ def create_app(library: Library | None = None, caller_factory: Any = None) -> Fa
         def work(report: Any) -> dict[str, Any]:
             for n, (slot, song, record) in enumerate(plan):
                 report(f"{n + 1} of {len(plan)}: {song['title']} to slot {pedal.slot_label(slot)}...")
-                pedal.push(record["preset"], slot, device_settings=record["chain"].get("device_settings"))
+                preset, _ = engine.for_current_pedal(record["chain"], record["preset"])
+                pedal.push(preset, slot, device_settings=record["chain"].get("device_settings"))
                 lib.mark_pushed(record["id"], slot)
             report(f"Sent {len(plan)} songs to slots {pedal.slot_label(plan[0][0])} to {pedal.slot_label(plan[-1][0])}")
             return {"sent": len(plan)}
@@ -1468,7 +1477,7 @@ def create_app(library: Library | None = None, caller_factory: Any = None) -> Fa
 
     @app.get("/api/pedal")
     def pedal_status() -> dict[str, Any]:
-        return pedal.status().__dict__
+        return {**pedal.status().__dict__, "pedal_model": xl.pedal().key}
 
     @app.websocket("/api/usb-relay")
     async def usb_relay_socket(websocket: WebSocket) -> None:
@@ -1501,8 +1510,11 @@ def create_app(library: Library | None = None, caller_factory: Any = None) -> Fa
 
         def work(report: Any) -> dict[str, Any]:
             report(f"Writing to slot {pedal.slot_label(body.slot)}...")
-            summary = pedal.push(record["preset"], body.slot,
+            preset, rebuilt = engine.for_current_pedal(record["chain"], record["preset"])
+            summary = pedal.push(preset, body.slot,
                                  device_settings=record["chain"].get("device_settings"))
+            if rebuilt:
+                summary = "\n".join([*rebuilt, summary])
             lib.mark_pushed(version_id, body.slot)
             config.write_settings({"default_slot": body.slot})
             report(summary)

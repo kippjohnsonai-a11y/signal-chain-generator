@@ -11,7 +11,7 @@ from typing import Any
 
 from stompxl.helixgen.llm import LLMCaller, LLMGenerationError, LLMRequest
 
-from . import engine
+from . import engine, xl
 
 
 def _schema() -> dict[str, Any]:
@@ -58,7 +58,7 @@ def prompt(block: dict[str, Any], snapshots: list[dict[str, Any]], context: dict
         lines.append(f"- {p['name']}: {p['value']}" + (f" ({'; '.join(extra)})" if extra else ""))
     on_in = [s["name"] for s in snapshots if s.get("enabled", {}).get(block["key"], True)]
     return "\n".join([
-        "Explain one block of an HX Stomp XL preset to a guitarist who wants to learn the pedal.",
+        f"Explain one block of an {xl.PEDAL_NAME} preset to a guitarist who wants to learn the pedal.",
         "",
         f"Song: {context.get('song', '?')}",
         f"Guitar: {context.get('guitar', '?')}",
@@ -80,7 +80,7 @@ def prompt(block: dict[str, Any], snapshots: list[dict[str, Any]], context: dict
         "it in general, typical ranges and what extremes do. 'recommended': a value or range for "
         "this song and guitar (say if the current value is already right). 'why': the reason, "
         "tied to the song, guitar or rig.",
-        "- tips: 2-4 practical tips for this block on the Stomp XL (gain staging, interactions "
+        f"- tips: 2-4 practical tips for this block on the {xl.PEDAL_NAME} (gain staging, interactions "
         "with neighbouring blocks, live use).",
     ])
 

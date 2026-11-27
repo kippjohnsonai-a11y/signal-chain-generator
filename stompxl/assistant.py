@@ -16,7 +16,7 @@ from typing import Any
 
 from stompxl.helixgen.llm import LLMCaller, LLMGenerationError, LLMRequest
 
-from . import knowledge
+from . import knowledge, xl
 
 #: The pseudo-parameter for a block's on/off.
 ENABLED = "@enabled"
@@ -93,7 +93,7 @@ def prompt(view: dict[str, Any], snapshot: int, messages: list[dict[str, str]],
     talk = "\n".join(f"{'Player' if m.get('role') == 'user' else 'You'}: {m['text'].strip()}"
                      for m in turns)
     return "\n".join([
-        "You're beside a guitarist who is tweaking the preset loaded on their HX Stomp XL right "
+        f"You're beside a guitarist who is tweaking the preset loaded on their {xl.PEDAL_NAME} right "
         "now, by ear. Answer their latest message about it.",
         "",
         f"Preset: \"{context.get('name') or '?'}\" in slot {context.get('slot') or '?'}.",

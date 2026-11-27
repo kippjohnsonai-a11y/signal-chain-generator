@@ -1,6 +1,6 @@
 # First push to the HX Stomp XL: verification checklist
 
-HelixGen's USB protocol is verified on the HX Stomp. The XL uses the same protocol family and is already in its device table (USB product id `0x4253`), but nobody has confirmed a write to one yet. These steps check the parts most likely to differ, on a slot you don't mind losing.
+HelixGen's USB protocol was first verified on the HX Stomp, and the app is now in daily use on an XL (USB product id `0x4253`). These steps check the parts most likely to differ, on a slot you don't mind losing. For the original HX Stomp, follow the same steps with the changes in [hx-stomp.md](hx-stomp.md).
 
 ## 0. Back up
 - In **HX Edit**: File → Backup (a full `.hxb` backup you can restore from).
@@ -8,7 +8,7 @@ HelixGen's USB protocol is verified on the HX Stomp. The XL uses the same protoc
 - The app also saves each slot's old preset to `~/Library/Application Support/StompXL Tone Studio/backups/` before every push. These raw copies can't be imported into HX Edit; the `.hxb` backup is the one to restore from.
 
 ## 1. Can the app see the pedal?
-- Quit HX Edit, connect the XL, start the app. The top bar should show "HX Stomp XL (serial ...) (untested model)".
+- Quit HX Edit, connect the XL, start the app. The top bar should show "HX Stomp XL (serial ...)".
 - If it says "USB unavailable": update the app (`uvx signal-chain-generator@latest`), which ships its own libusb, and restart it.
 
 ## 2. File import (no USB write)
@@ -27,7 +27,7 @@ HelixGen's USB protocol is verified on the HX Stomp. The XL uses the same protoc
   - [ ] the expression pedal sweeps the wah, volume or Pitch Wham **while that block is on** (it may be on only in some snapshots). HX Edit shows it under the block's Controller Assign as Position → EXP 1.
 
 ## 4. Report back
-If everything checks out, change `VERIFIED_PRODUCT_IDS` in `stompxl/helixgen/device/usb.py` to include `0x4253`, and consider sending a device report upstream to [HelixGen](https://github.com/ORogers/HelixGen/issues/new/choose).
+If something doesn't match, tap **Report a problem** in the app (More tab). If everything checks out, consider sending a device report upstream to [HelixGen](https://github.com/ORogers/HelixGen/issues/new/choose).
 
 ## Footswitch numbering and snapshot diagnostics
 

@@ -55,19 +55,32 @@ def main() -> None:
     parser.add_argument("--port", type=int, default=8765)
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--no-browser", action="store_true")
+    parser.add_argument("--launch", action="store_true",
+                        help="for desktop shortcuts: reuse a running copy, log to a file")
     args = parser.parse_args()
+
+    from . import launch
+
+    url = f"http://{args.host}:{args.port}/"
+    if args.launch:
+        launch.log_to_file()
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
+    if args.launch and launch.already_running(url, webbrowser.open):
+        return
+
+    import atexit
 
     import uvicorn
 
     from . import access, lan
     from .server import create_app
 
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
-    url = f"http://{args.host}:{args.port}/"
     if not args.no_browser:
         threading.Timer(1.0, lambda: webbrowser.open(url)).start()
     print(f"{APP_FULL_NAME} running at {url}  (Ctrl+C to stop)")
     app = create_app()
+    launch.write_pid()
+    atexit.register(launch.clear_pid)
     if lan.enabled():
         lan.start(app)
         print(f"Phones on this Wi-Fi: paired phones can use port {lan.port()}")

@@ -2,7 +2,9 @@
 
 Type a song, pick one of your guitars, get a dialled-in **Line 6 HX Stomp XL** preset, and send it straight to the pedal.
 
-It runs on your own Mac, which keeps your library and talks to the pedal. Your phone, tablet and other computers open it in a browser. Nothing goes through anyone else's server: your songs stay on your Mac, and Claude is called with your own API key. The first release supports **macOS** as the computer that runs it; Windows is planned once the pedal connection has been tested there.
+The original **HX Stomp** works too (new, in beta): plug it in and the app makes three-snapshot presets for it. See [docs/hx-stomp.md](docs/hx-stomp.md).
+
+It runs on your own Mac or Windows PC, which keeps your library and talks to the pedal. Your phone, tablet and other computers open it in a browser. Nothing goes through anyone else's server: your songs stay on your computer, and Claude is called with your own API key.
 
 *Formerly "StompXL Tone Studio". Not affiliated with Line 6; see [Legal](#legal).*
 
@@ -20,6 +22,12 @@ It runs on your own Mac, which keeps your library and talks to the pedal. Your p
 - **Built for rehearsal.** Star songs to pin them under **Favorites**, with your last few songs under **Recent**. A folder is a set list: **Order** puts its songs in play order, and a song from it shows **◀ Prev · 3 of 14 · Next ▶**. One button per guitar in the song header opens that guitar's version, no Claude call (or "+ Strat" remakes it). Tap any pedal to tune it; the **Live** switch, Discard and Save sit in a bar at the bottom. A values-only save is named "Rehearsal Nov 15" and starred, so the song opens on it next time. On a phone, the song list and a song are separate screens, and every song has its own address, so Back, refresh and bookmarks work.
 - **Push to the pedal** over USB into the slot you choose; the slot's old preset is backed up first. Or download the `.hlx` and drag it into HX Edit.
 - **Best-practices library** in [`stompxl/knowledge/`](stompxl/knowledge): platform limits, chain order, gain staging, pickups, rigs, snapshots, wah/expression/looper, and how to interpret feedback. Every prompt includes it; edit or add a `.md` file to change how presets are built.
+
+## Install
+
+- **Mac:** download `Signal-Chain-Generator-VERSION.dmg` from the [latest release](https://github.com/kippjohnsonai-a11y/signal-chain-generator/releases/latest), drag the app to Applications, and open it.
+- **Windows:** download `Signal-Chain-Generator-VERSION-Setup.exe` from the [latest release](https://github.com/kippjohnsonai-a11y/signal-chain-generator/releases/latest) and run it. No administrator rights needed. The installer isn't code-signed yet, so Windows may say "Windows protected your PC": click **More info → Run anyway**. Then open **Signal Chain Generator** from the Start menu; it opens in your browser, with no window of its own. Your library is in `%APPDATA%\Signal Chain Generator` (with `app.log` if something goes wrong). The pedal works over USB with Line 6's normal driver; close HX Edit while sending.
+- **Either, from a terminal:** with [uv](https://docs.astral.sh/uv/), `uvx signal-chain-generator`.
 
 ## Setup on a Mac (Apple Silicon)
 
@@ -44,9 +52,9 @@ Then in the app (new to it? **? Help** at the top, or **More → How to use this
 2. **Guitars** → add your guitars and their pickups (say, a Strat with SSS single coils).
 3. Type a song, pick guitar + rig + toggles, **Generate**. It takes about a minute: four AI calls (song research → blocks → parameters → snapshots).
 
-**For pushing to the pedal:** HX Edit must be **installed** (the app reads its model table) but **closed** while sending, since only one program can use the USB connection at a time. Connect the Stomp XL over USB.
+**For pushing to the pedal:** HX Edit must be **installed** (the app reads its model table) but **closed** while sending, since only one program can use the USB connection at a time. Connect the Stomp XL (or HX Stomp) over USB.
 
-> **Before your first push:** back up the pedal in HX Edit (File → Backup). Then read [docs/device-verification.md](docs/device-verification.md). The USB upload code has been verified on the regular HX Stomp but not yet on the XL, so the first push is a supervised test.
+> **Before your first push:** back up the pedal in HX Edit (File → Backup). Then read [docs/device-verification.md](docs/device-verification.md). The USB upload code is in daily use on the HX Stomp XL and was first built on the regular HX Stomp; a first push to a new pedal is still worth doing as a supervised test.
 
 ## Cost
 
@@ -58,7 +66,7 @@ Claude is the default and what the app is tuned and tested with: the newest Clau
 | --- | --- |
 | [`stompxl/helixgen/`](stompxl/helixgen) | Vendored [HelixGen](https://github.com/ORogers/HelixGen) (Apache-2.0): model catalog, `.hlx` generator, validator, reverse-engineered USB protocol. One local change: the snapshot count is a parameter, so 4-snapshot XL presets work. |
 | [`stompxl/engine.py`](stompxl/engine.py) | The 4-round Claude pipeline, rig/toggle rules, tweaks and forks. |
-| [`stompxl/xl.py`](stompxl/xl.py) | Stomp XL specifics: device ID, 4 snapshots, expression pedal assignment. |
+| [`stompxl/xl.py`](stompxl/xl.py) | Pedal specifics: one profile each for the HX Stomp XL and HX Stomp (device ID, snapshots, preset banks, footswitches), expression pedal assignment. |
 | [`stompxl/knowledge/`](stompxl/knowledge) | The best-practices library. |
 | [`stompxl/db.py`](stompxl/db.py) | SQLite library: guitars, rigs, instructions, songs, the version tree. |
 | [`stompxl/pedal.py`](stompxl/pedal.py) | Slot listing, backup-then-push over USB. |

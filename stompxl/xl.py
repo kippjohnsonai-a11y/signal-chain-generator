@@ -1,49 +1,157 @@
-"""What is specific to the HX Stomp XL, as opposed to HelixGen's HX Stomp.
+"""What is specific to the pedal: the HX Stomp XL (the default) or the HX Stomp.
 
-The two share a model catalog, block budget and file format. The XL differs in
-its device id, its four snapshots (the Stomp has three) and its switch count.
+The two share a model catalog, block budget and file format. They differ in
+their device id, snapshot count (XL 4, Stomp 3), preset banks and switches;
+see ``Pedal``. ``xl.SNAPSHOT_COUNT`` and the other per-pedal names follow the
+``pedal_model`` setting, which connecting a pedal keeps up to date.
 """
 
 from __future__ import annotations
 
 import copy
 import json
+from dataclasses import dataclass
 from functools import lru_cache
 from typing import Any
 
 from stompxl.helixgen import resources
 
-DEVICE_ID = 2162699
-PRODUCT_ID = 0x4253
-SNAPSHOT_COUNT = 4
 SNAPSHOT_NAME_LIMIT = 10
 MAX_BLOCKS = 8
 PRESET_NAME_LIMIT = 16
-#: Preset slots: 32 banks of four, 01A-32D on the panel, 0-127 on the wire
-#: (HX Stomp XL owner's manual, "Preset List").
-SLOT_COUNT = 128
 
-#: Controller sources as stored in ``tone.controller``, read off presets HX Edit
-#: saved on a Stomp XL: Snapshots is 12 (the HX Stomp uses 9), EXP 1 is 1.
-#: EXP 2 = 2 follows the same numbering.
-CONTROLLER_SNAPSHOT = 12
+#: Controller sources as stored in ``tone.controller``: EXP 1 is 1 and EXP 2 is
+#: 2 on both pedals. The Snapshots source differs per pedal (see ``Pedal``).
 CONTROLLER_EXP1 = 1
 CONTROLLER_EXP2 = 2
 
-#: Physical footswitches: top row FS1 FS2 FS3 MODE, bottom row FS4 FS5 FS6 TAP.
-#: The recommended setup (Global Settings > Footswitches > Stomp Mode "4 Switch",
-#: Up/Down Switches "Snapshots") turns FS1/FS4 into snapshot up/down, which
-#: steps through the song's sections in order. That leaves FS2, FS3, FS5 and
-#: FS6 as stomps: the looper on FS6, the rest bottom row first.
-FOOTSWITCH_COUNT = 6
-LOOPER_SWITCH = 6
-SNAPSHOT_UPDOWN_SWITCHES = (1, 4)
-SWITCH_FILL_ORDER = (5, 2, 3, 6)
-#: Physical switch -> the ``@fs_index`` written to the preset (one-based
-#: position in the device's footswitch array). Confirmed on a Stomp XL: a
-#: preset HX Edit saved with blocks on FS4, FS5 and FS6 holds them at
-#: positions 4, 5 and 6. Override with the ``footswitch_map`` setting.
-DEFAULT_SWITCH_MAP = {n: n for n in range(1, FOOTSWITCH_COUNT + 1)}
+
+@dataclass(frozen=True)
+class Pedal:
+    """What differs between the pedals this app supports.
+
+    The HX Stomp and HX Stomp XL share the DSP, the 8-block limit, the model
+    catalog, the preset format and the USB protocol. They differ in the counts
+    below and in how the footswitches are laid out.
+    """
+
+    key: str
+    name: str
+    #: USB product id, as the pedal reports it.
+    product_id: int
+    #: ``data.device`` in a preset (.hlx) made for this pedal.
+    device_id: int
+    snapshot_count: int
+    #: Preset slots on the wire (0 to slot_count - 1) and presets per bank.
+    slot_count: int
+    bank_size: int
+    #: The Snapshots controller source in ``tone.controller``.
+    controller_snapshot: int
+    #: Footswitches the app assigns blocks to.
+    footswitch_count: int
+    #: Where the looper goes, and the order the other stomps fill in.
+    looper_switch: int
+    switch_fill_order: tuple[int, ...]
+    #: How the player moves between snapshots, for the AI and the help text.
+    snapshot_switching: str
+    #: The footswitch layout and setup, for the AI's platform notes.
+    switch_notes: str
+
+    @property
+    def short_name(self) -> str:
+        return self.name.removeprefix("HX ")
+
+
+PEDALS: dict[str, Pedal] = {
+    # Preset slots: 32 banks of four, 01A-32D (HX Stomp XL owner's manual,
+    # "Preset List"). Snapshots source 12 and EXP 1 = 1 were read off presets
+    # HX Edit saved on a Stomp XL.
+    #
+    # Physical footswitches: top row FS1 FS2 FS3 MODE, bottom row FS4 FS5 FS6 TAP.
+    # The recommended setup (Global Settings > Footswitches > Stomp Mode "4 Switch",
+    # Up/Down Switches "Snapshots") turns FS1/FS4 into snapshot up/down, which
+    # steps through the song's sections in order. That leaves FS2, FS3, FS5 and
+    # FS6 as stomps: the looper on FS6, the rest bottom row first.
+    "stomp_xl": Pedal(
+        key="stomp_xl", name="HX Stomp XL", product_id=0x4253, device_id=2162699,
+        snapshot_count=4, slot_count=128, bank_size=4, controller_snapshot=12,
+        footswitch_count=6, looper_switch=6, switch_fill_order=(5, 2, 3, 6),
+        snapshot_switching=(
+            "the player steps forward with SNAP up (FS1) and back with SNAP down (FS4)"),
+        switch_notes=(
+            "Footswitches: top row FS1 FS2 FS3 MODE, bottom row FS4 FS5 FS6 TAP. The player "
+            "uses Stomp Mode \"4 Switch\" with Up/Down Switches set to \"Snapshots\": FS1/FS4 "
+            "step up/down through the 4 snapshots, and FS2, FS3, FS5, FS6 are stomps. The app "
+            "assigns those itself: looper on FS6, then by priority wah, drive, delay, volume "
+            "boost, modulation (FS5, FS2, FS3). So at most 3-4 blocks get a stomp; everything "
+            "else must be handled by the snapshots."),
+    ),
+    # 42 banks of three, 01A-42C (126 presets). Snapshots source 9 and the
+    # footswitch record are HelixGen's, read off a real HX Stomp; the switches
+    # select the three snapshots directly in Snapshot footswitch mode.
+    "stomp": Pedal(
+        key="stomp", name="HX Stomp", product_id=0x4246, device_id=2162694,
+        snapshot_count=3, slot_count=126, bank_size=3, controller_snapshot=9,
+        footswitch_count=3, looper_switch=3, switch_fill_order=(1, 2, 3),
+        snapshot_switching="the player picks a section with FS1, FS2 or FS3 in Snapshot mode",
+        switch_notes=(
+            "Footswitches: FS1 FS2 FS3. The player keeps the footswitches in Snapshot mode, "
+            "so FS1, FS2 and FS3 select snapshots 1, 2 and 3 directly: the snapshots are the "
+            "only way to change the sound mid-song. The app still gives up to three blocks a "
+            "stomp switch (looper on FS3, then wah, drive, delay, boost, modulation) for when "
+            "the player flips to Stomp mode, but plan as if no block can be stomped: every "
+            "change the song needs must be in the snapshots."),
+    ),
+}
+DEFAULT_PEDAL = "stomp_xl"
+
+
+def pedal(key: str | None = None) -> Pedal:
+    """A pedal by key, or the one in the ``pedal_model`` setting (Stomp XL by default)."""
+    if key is None:
+        from stompxl import config
+
+        key = config.get_setting("pedal_model")
+    return PEDALS.get(key or DEFAULT_PEDAL, PEDALS[DEFAULT_PEDAL])
+
+
+def pedal_for_product(product_id: int | None) -> Pedal | None:
+    """The supported pedal behind a USB product id, or None."""
+    return next((p for p in PEDALS.values() if p.product_id == product_id), None)
+
+
+def remember_pedal(product_id: int | None) -> Pedal | None:
+    """Switch the ``pedal_model`` setting to the pedal just connected, if supported."""
+    found = pedal_for_product(product_id)
+    if found is not None and found.key != pedal().key:
+        from stompxl import config
+
+        config.write_settings({"pedal_model": found.key})
+    return found
+
+
+#: Module attributes that follow the current pedal, so ``xl.SNAPSHOT_COUNT``
+#: and friends keep working for every caller.
+_PER_PEDAL = {
+    "DEVICE_ID": "device_id", "PRODUCT_ID": "product_id",
+    "SNAPSHOT_COUNT": "snapshot_count", "SLOT_COUNT": "slot_count",
+    "BANK_SIZE": "bank_size", "CONTROLLER_SNAPSHOT": "controller_snapshot",
+    "FOOTSWITCH_COUNT": "footswitch_count", "LOOPER_SWITCH": "looper_switch",
+    "SWITCH_FILL_ORDER": "switch_fill_order", "PEDAL_NAME": "name",
+}
+
+
+def __getattr__(name: str) -> Any:
+    if name in _PER_PEDAL:
+        return getattr(pedal(), _PER_PEDAL[name])
+    if name == "DEFAULT_SWITCH_MAP":
+        #: Physical switch -> the ``@fs_index`` written to the preset (one-based
+        #: position in the device's footswitch array). Confirmed on a Stomp XL: a
+        #: preset HX Edit saved with blocks on FS4, FS5 and FS6 holds them at
+        #: positions 4, 5 and 6. Override with the ``footswitch_map`` setting.
+        return {n: n for n in range(1, pedal().footswitch_count + 1)}
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
 
 #: Which blocks earn a stomp switch, most-used first. Amps, cabs, routing and
 #: the expression-driven volume pedal never get one.
@@ -470,13 +578,17 @@ def _base_template() -> dict[str, Any]:
 
 
 def template() -> dict[str, Any]:
-    """HelixGen's HX Stomp template, re-badged as a Stomp XL with four snapshots."""
+    """HelixGen's HX Stomp template, badged for the current pedal and its snapshot count."""
 
+    current = pedal()
     preset = copy.deepcopy(_base_template())
     data = preset["data"]
-    data["device"] = DEVICE_ID
+    data["device"] = current.device_id
     tone = data["tone"]
-    for index in range(SNAPSHOT_COUNT):
+    for key in [k for k in tone if k.startswith("snapshot") and k[8:].isdigit()
+                and int(k[8:]) >= current.snapshot_count]:
+        del tone[key]
+    for index in range(current.snapshot_count):
         key = f"snapshot{index}"
         if key not in tone:
             snapshot = copy.deepcopy(tone["snapshot0"])
@@ -540,7 +652,7 @@ def default_expression(model: Any) -> int | None:
 
 def switch_map(settings: dict[str, Any] | None = None) -> dict[int, int]:
     """Physical switch -> preset ``@fs_index``, with any calibrated overrides."""
-    mapping = dict(DEFAULT_SWITCH_MAP)
+    mapping = {n: n for n in range(1, pedal().footswitch_count + 1)}
     for key, value in ((settings or {}).get("footswitch_map") or {}).items():
         try:
             mapping[int(key)] = int(value)
@@ -562,20 +674,23 @@ def switch_role(model: Any) -> str | None:
 def plan_footswitches(models: list[Any], skip: Any = ()) -> dict[int, int]:
     """Block index -> physical switch.
 
-    The looper always sits on FS6. Every other switchable block is ranked by
-    how often it gets stomped live and placed on FS5, FS2, FS3 (and FS6 when
-    there's no looper); FS1 and FS4 stay free for snapshot up/down. Blocks in
+    The looper always sits on the pedal's looper switch (FS6 on the XL, FS3 on
+    the Stomp). Every other switchable block is ranked by how often it gets
+    stomped live and placed in the pedal's fill order: on the XL FS5, FS2, FS3
+    (and FS6 when there's no looper), leaving FS1 and FS4 for snapshot up/down;
+    on the Stomp FS1-FS3, which only act as stomps in Stomp mode. Blocks in
     ``skip`` (the Stage boost) get no switch.
     """
+    current = pedal()
     plan: dict[int, int] = {}
     for index, model in enumerate(models):
         if model.display_name == LOOPER_MODEL:
-            plan[index] = LOOPER_SWITCH
+            plan[index] = current.looper_switch
     ranked = sorted(
         (i for i, m in enumerate(models) if i not in plan and i not in skip and switch_role(m)),
         key=lambda i: (SWITCH_PRIORITY.index(switch_role(models[i])), i),
     )
-    free = [n for n in SWITCH_FILL_ORDER if n not in plan.values()]
+    free = [n for n in current.switch_fill_order if n not in plan.values()]
     plan.update(zip(ranked, free, strict=False))
     return plan
 

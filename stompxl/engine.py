@@ -1,4 +1,4 @@
-"""Song + guitar + rig in, a Stomp XL preset out.
+"""Song + guitar + rig in, an HX Stomp XL (or HX Stomp) preset out.
 
 Generation runs four structured Claude rounds, each constrained to a JSON
 schema built from the model catalog:
@@ -283,7 +283,7 @@ def _parse_brief(text: str) -> dict[str, Any]:
 
 def _brief_prompt(song: str, setup: Setup) -> str:
     return "\n\n".join([
-        "Plan a Line 6 HX Stomp XL preset for a guitarist who wants to play this song. "
+        f"Plan a Line 6 {xl.PEDAL_NAME} preset for a guitarist who wants to play this song. "
         "Work out the guitar tone(s) on the original recording and how to get them with "
         "the player's own guitar and rig.",
         "Reference - best practices:\n" + knowledge.library_text(),
@@ -372,7 +372,7 @@ def check_blocks(models: list[ModelDefinition], setup: Setup,
     room = xl.MAX_BLOCKS - (1 if setup.nam else 0)
     if len(models) > room:
         raise LLMGenerationError(
-            f"The HX Stomp XL holds at most {xl.MAX_BLOCKS} blocks"
+            f"The {xl.PEDAL_NAME} holds at most {xl.MAX_BLOCKS} blocks"
             + (" and the app adds one for NAM, so choose at most "
                f"{room}." if setup.nam else "."))
     total = xl.dsp_total(models) + (xl.NAM_DSP if setup.nam == "pedal" else 0.0)
@@ -380,7 +380,7 @@ def check_blocks(models: list[ModelDefinition], setup: Setup,
     if total > budget:
         heaviest = sorted(models, key=xl.dsp_cost, reverse=True)[:3]
         raise LLMGenerationError(
-            f"Too heavy for the Stomp XL's single DSP (about {total:.0f}% estimated, limit "
+            f"Too heavy for the {xl.PEDAL_NAME}'s single DSP (about {total:.0f}% estimated, limit "
             f"{budget:.0f}%). Heaviest: "
             + ", ".join(f"{m.display_name} ~{xl.dsp_cost(m):.0f}%" for m in heaviest)
             + (
@@ -562,7 +562,7 @@ def _parse_gate(raw: Any, setup: Setup) -> dict[str, Any]:
 def _blocks_prompt(song: str, setup: Setup, brief: dict[str, Any], cat: ModelCatalog,
                    current: dict[str, Any] | None, feedback: str) -> str:
     parts = [
-        "Choose the signal chain (blocks, in order) for this HX Stomp XL preset.",
+        f"Choose the signal chain (blocks, in order) for this {xl.PEDAL_NAME} preset.",
         "Reference - best practices:\n" + knowledge.library_text(),
         "Rules:\n"
         f"- At most {xl.MAX_BLOCKS} blocks, named exactly as in the model list.\n"
@@ -670,7 +670,7 @@ def _parameters_round(call: LLMCaller, song: str, setup: Setup, brief: dict[str,
         "Set values that recreate the song's tone on this guitar and rig."
     )
     prompt = "\n\n".join([
-        "Set the parameters of every block in this HX Stomp XL preset.",
+        f"Set the parameters of every block in this {xl.PEDAL_NAME} preset.",
         "Reference - best practices:\n" + knowledge.library_text(),
         "Rules:\n"
         "- Stay within each parameter's range; for options use a label exactly as listed.\n"
@@ -726,7 +726,7 @@ def _snapshots_round(call: LLMCaller, song: str, setup: Setup, brief: dict[str, 
         for i, s in enumerate(brief.get("sections", []))
     )
     parts = [
-        f"Design the {xl.SNAPSHOT_COUNT} snapshots of this HX Stomp XL preset, one per song "
+        f"Design the {xl.SNAPSHOT_COUNT} snapshots of this {xl.PEDAL_NAME} preset, one per song "
         "section, in this order:\n" + sections,
         "Reference - snapshot and gain-staging practice:\n" + knowledge.library_text(),
         "Rules:\n"
@@ -919,16 +919,38 @@ def _finish_chain(blocks: list[dict[str, Any]], models: list[ModelDefinition],
         blocks[i]["expression"] = pedal
         used.add(pedal)
 
+    assign_switches(blocks, models)
+    return blocks, models, snapshots
+
+
+def assign_switches(blocks: list[dict[str, Any]], models: list[ModelDefinition]) -> None:
+    """Put the chain's stomps on the current pedal's footswitches, in place."""
     switches = xl.switch_map(config.read_settings())
     for block in blocks:
-        for key in ("footswitch", "footswitch_label"):
+        for key in ("footswitch", "footswitch_label", "switch"):
             block.pop(key, None)
     stage = {i for i, b in enumerate(blocks) if b.get("stage_boost")}
     for index, switch in xl.plan_footswitches(models, skip=stage).items():
         blocks[index]["footswitch"] = switches[switch]
         blocks[index]["footswitch_label"] = xl.switch_label(models[index])
         blocks[index]["switch"] = switch
-    return blocks, models, snapshots
+
+
+def for_current_pedal(chain: dict[str, Any], preset: dict[str, Any],
+                      cat: ModelCatalog | None = None) -> tuple[dict[str, Any], list[str]]:
+    """The preset to send to the pedal in use: as saved, or rebuilt for it.
+
+    A version made for the other pedal (an XL song on an HX Stomp, or the other
+    way) gets its footswitches planned again for this pedal's switches and its
+    snapshots fitted to this pedal's count before it is built again.
+    """
+    if (preset.get("data") or {}).get("device") == xl.DEVICE_ID:
+        return preset, []
+    cat = cat or catalog()
+    chain = copy.deepcopy(chain)
+    assign_switches(chain.get("blocks") or [], [cat.get(b["model"]) for b in chain.get("blocks") or []])
+    rebuilt, warnings = build_preset(chain, cat)
+    return rebuilt, [f"Rebuilt for the {xl.PEDAL_NAME}.", *warnings]
 
 
 STAGE_BOOST_WHY = ("Stage boost: more gain into the amp, off until you switch it on in "
@@ -972,6 +994,11 @@ def build_preset(chain: dict[str, Any], cat: ModelCatalog | None = None
 
     cat = cat or catalog()
     chain = copy.deepcopy(chain)
+    count = xl.SNAPSHOT_COUNT
+    dropped = (chain.get("snapshots") or [])[count:]
+    if dropped:
+        # A song made for the XL's four snapshots, built for the Stomp's three.
+        chain["snapshots"] = chain["snapshots"][:count]
     if (chain.get("nam") or {}).get("mode") == "usb":
         # Re-derived on every build, so a hand edit's added or removed block
         # lands on the right path.
@@ -984,6 +1011,9 @@ def build_preset(chain: dict[str, Any], cat: ModelCatalog | None = None
     for key in [k for k in fs if k not in planned]:
         del fs[key]
     warnings = list(report.warnings)
+    for n, snap in enumerate(dropped, start=count + 1):
+        warnings.append(f"Snapshot {n} ({snap.get('name') or 'unnamed'}) left off: "
+                        f"the {xl.PEDAL_NAME} has {count} snapshots.")
     # Every snapshot plays at the song's tempo unless it carries its own (an
     # imported preset can); the template's are all 120, and with Tempo set to
     # per-snapshot the delays would follow those.
@@ -994,6 +1024,7 @@ def build_preset(chain: dict[str, Any], cat: ModelCatalog | None = None
         tone[f"snapshot{index}"]["@tempo"] = (
             float(own) if isinstance(own, (int, float)) else tone["global"]["@tempo"])
     # HelixGen writes the HX Stomp's Snapshots source; the XL uses its own.
+    # (On the Stomp the two are the same.)
     for params in preset["data"]["tone"].get("controller", {}).get("dsp0", {}).values():
         for entry in params.values():
             if entry.get("@controller") == SNAPSHOT_CONTROLLER:

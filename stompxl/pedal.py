@@ -143,18 +143,24 @@ def status() -> DeviceStatus:
     from stompxl.helixgen.device import relay
 
     remote = relay.current()
+    from stompxl import xl
+
+    # A Stomp or a Stomp XL plugged in sets which pedal presets are made for.
+    xl.remember_pedal(info.product_id)
     return DeviceStatus(
         connected=True,
         description=info.describe(),
         where=remote[2] if remote and remote[0] == info else "",
-        # HelixGen has only verified the HX Stomp; the XL is expected to match.
         verified=info.verified,
     )
 
 
 def slot_label(slot: int) -> str:
-    """Slot 0 is 1A on the pedal; the XL shows four presets (A-D) per bank."""
-    return f"{slot // 4 + 1}{'ABCD'[slot % 4]}"
+    """Slot 0 is 1A on the pedal: four presets (A-D) per bank on the XL, three on the Stomp."""
+    from stompxl import xl
+
+    size = xl.BANK_SIZE
+    return f"{slot // size + 1}{'ABCD'[slot % size]}"
 
 
 def _timed_out(exc: BaseException) -> bool:

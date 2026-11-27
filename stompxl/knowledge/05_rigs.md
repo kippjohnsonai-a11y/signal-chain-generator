@@ -5,7 +5,7 @@
 - Output block set to Line level. Keep overall level consistent across presets.
 
 ## Front of a real guitar amp (no amp or cab models)
-- No amp, cab, or preamp models. The real amp supplies the core tone; the Stomp XL supplies dynamics, drives, modulation, delay, reverb, EQ.
+- No amp, cab, or preamp models. The real amp supplies the core tone; the {{PEDAL}} supplies dynamics, drives, modulation, delay, reverb, EQ.
 - Set drives as the gain stages: a clean amp needs drives with more Gain; a crunch amp needs drives as boosts (low Gain, high Level).
 - Time-based effects in front of a distorted amp get messy - keep delay/reverb mixes lower, or suggest the 4-cable method.
 - Output at Instrument level.

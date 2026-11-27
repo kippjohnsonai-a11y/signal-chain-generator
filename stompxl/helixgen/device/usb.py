@@ -104,8 +104,9 @@ PRODUCT_IDS: Final[dict[int, str]] = {
     0x4247: "POD Go",
 }
 
-#: Product ids this code has actually been run against.
-VERIFIED_PRODUCT_IDS: Final = frozenset({0x4246})
+#: Product ids this code has actually been run against: HelixGen's HX Stomp,
+#: and the HX Stomp XL this app is used with.
+VERIFIED_PRODUCT_IDS: Final = frozenset({0x4246, 0x4253})
 
 CONTROL_INTERFACE: Final = 0
 ENDPOINT_OUT: Final = 0x01
