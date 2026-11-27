@@ -45,6 +45,8 @@ jobs:
         run: pipx install uv==0.11.32
       - name: Test
         run: uv run --locked --extra dev pytest -q
+      - name: USB smoke test (bundled libusb)
+        run: uv run --locked python scripts/usb_smoke.py
 
   # Build the Mac app unsigned and check that its bundled uv can run a release.
   mac-app:

@@ -99,10 +99,21 @@ def write_settings(values: dict[str, Any]) -> None:
     tmp.replace(path)
 
 
+def anthropic_api_key_source() -> str | None:
+    """Where the key comes from: "settings", "env", or None.
+
+    A key saved in Settings wins, so this app can use its own key without
+    touching an ANTHROPIC_API_KEY that other tools on the computer rely on.
+    """
+    if _read(base_dir() / "settings.json").get("anthropic_api_key"):
+        return "settings"
+    return "env" if os.environ.get("ANTHROPIC_API_KEY") else None
+
+
 def anthropic_api_key() -> str | None:
-    """The environment wins over the saved key, so a shell export can override.
+    """The saved key, else ANTHROPIC_API_KEY from the environment.
 
     Guests use the owner's key: they can't see or set one of their own.
     """
-    return (os.environ.get("ANTHROPIC_API_KEY")
-            or _read(base_dir() / "settings.json").get("anthropic_api_key") or None)
+    return (_read(base_dir() / "settings.json").get("anthropic_api_key")
+            or os.environ.get("ANTHROPIC_API_KEY") or None)
