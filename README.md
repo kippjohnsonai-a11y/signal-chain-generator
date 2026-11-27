@@ -38,7 +38,7 @@ cd stompxl
 uv run stompxl                     # installs everything the first time, then opens http://127.0.0.1:8765
 ```
 
-Then in the app:
+Then in the app (new to it? **? Help** at the top, or **More → How to use this app**, walks through everything step by step, with fixes for common pedal problems and a glossary):
 
 1. **Settings** → paste an [Anthropic API key](https://console.anthropic.com/settings/keys). It's saved only on your Mac (`~/Library/Application Support/Signal Chain Generator/settings.json`, owner-read-only; installs from before the rename keep using `StompXL Tone Studio/`). Setting `ANTHROPIC_API_KEY` in your shell also works.
 2. **Guitars** → add your guitars and their pickups (say, a Strat with SSS single coils).

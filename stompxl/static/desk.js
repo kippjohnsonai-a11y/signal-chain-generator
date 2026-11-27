@@ -74,7 +74,13 @@ async function openDesk() {
   try { if (!desk.slots) await deskLoadSlots(); } catch (err) {
     $("#version-detail").innerHTML = `<div class="card desk-head"><h2>Pedal</h2>
       <p>Couldn't read the pedal: ${esc(err.message)}</p>
-      <button class="primary" data-desk-retry>Try again</button></div>`;
+      <ul class="hint help-list">
+        <li>Is the pedal switched on, with its USB cable plugged in at both ends?</li>
+        <li>Is HX Edit open? Quit it: only one app can use the pedal at a time.</li>
+        <li>Still nothing? Try another USB cable or port, or switch the pedal off and on again.</li>
+      </ul>
+      <button class="primary" data-desk-retry>Try again</button>
+      <button class="ghost" data-help="trouble">More fixes</button></div>`;
     return;
   }
   const saved = Number(deskRecall(DESK_SLOT_KEY));
@@ -198,6 +204,7 @@ function renderDesk() {
   const v = current.version;
   deskEnsureEditing();
   $("#version-detail").innerHTML = `
+    ${helpTip("pedal-tab", "This tab works on whatever preset is on the pedal right now, even one you didn't make here. Step through presets with ◀ ▶, tap <b>Go live</b> and every change plays on the pedal straight away. <b>Keep it</b> at the bottom saves it as a song.", "pedal")}
     <div class="card desk-head" id="desk-head">${deskHeadHtml()}</div>
     <div class="card" id="chain-card">${renderChainCard(v)}</div>
     <div class="card" id="desk-picks">${deskPicksHtml()}</div>

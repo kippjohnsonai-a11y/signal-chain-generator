@@ -714,3 +714,39 @@ body.stage-locked .stage button:not(.st-lock) { opacity: .45; }
 .lan-qr svg { width: 100%; height: auto; display: block; border-radius: 6px; }
 .lan-devices { list-style: none; padding: 0; margin: 6px 0 12px; display: grid; gap: 8px; }
 .lan-devices li { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+
+/* ---------------------------------------------------------------- help (help.js)
+   The "How to use this app" walkthrough and the tips around the app. */
+.help-pill { cursor: pointer; font-weight: 600; min-width: 2rem; justify-content: center; }
+@media (max-width: 860px) { .help-pill-text { display: none; } .help-pill { min-width: 40px; min-height: 36px; } }
+.tip { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem .75rem; margin: 0 0 1rem; padding: .7rem .9rem;
+  background: var(--panel-2); border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: var(--radius); font-size: .9rem; }
+.tip[hidden] { display: none; }
+.tip-body { flex: 1 1 22rem; }
+.tip-body > b:first-child { color: var(--accent); margin-right: .25rem; }
+.tip-actions { display: flex; gap: .4rem; flex-wrap: wrap; }
+.pane-wrap > .tip { margin: 0; }
+.hint.lead { font-size: .9rem; margin: 0 0 1rem; }
+.help-list { margin: .25rem 0 .75rem; padding-left: 1.2rem; }
+.help-list li { margin: .2rem 0; }
+.help-dialog { line-height: 1.55; }
+.help-toc { display: flex; flex-wrap: wrap; gap: .4rem; margin: .75rem 0 1.25rem; }
+.help-toc .chip { font-size: .85rem; padding: .3rem .75rem; cursor: pointer; color: var(--text); }
+.help-section { border-top: 1px solid var(--line); padding-top: 1rem; margin-top: 1rem; scroll-margin-top: 3.5rem; }
+.help-section h3 { font-size: 1.05rem; color: var(--accent); }
+.help-section ul, .help-section ol { padding-left: 1.3rem; }
+.help-section li { margin: .35rem 0; }
+.help-faq dt, .help-words dt { font-weight: 600; margin-top: .75rem; }
+.help-faq dd, .help-words dd { margin: .15rem 0 0; color: var(--muted); }
+.help-words { display: grid; grid-template-columns: max-content 1fr; gap: .1rem 1rem; }
+.help-words dt { margin-top: .5rem; }
+.help-words dd { margin-top: .5rem; }
+@media (max-width: 767px) {
+  .help-words { display: block; }
+  .help-words dd { margin-top: .1rem; }
+  .help-toc .chip { min-height: 40px; }
+}
+.tip-compact { margin: 0 0 .75rem; }
+.tip-compact .tip-body { flex-basis: 100%; }
+@media (max-width: 1400px) { .version { display: none; } }
+@media (max-width: 767px) { #song-view:not(.desk) [data-tip="song-play"] { order: -2; } }

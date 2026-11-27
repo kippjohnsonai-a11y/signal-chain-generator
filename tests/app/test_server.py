@@ -114,6 +114,21 @@ def test_page_is_not_cached_and_assets_carry_the_version(client):
     assert page.headers["cache-control"] == "no-cache"
     assert f'/static/app.js?v={VERSION["commit"]}' in page.text
     assert f'/static/style.css?v={VERSION["commit"]}' in page.text
+    # Every script the page loads gets the stamp, or an update could pair old and new code.
+    for script in ("relay", "app", "closeup", "desk", "stage", "help"):
+        assert f'/static/{script}.js?v={VERSION["commit"]}' in page.text
+
+
+def test_page_has_the_walkthrough_and_its_sections(client):
+    import re
+
+    page = client.get("/").text
+    assert 'id="help-dialog"' in page
+    # Every "Show me how" / contents link points at a section that exists.
+    sections = set(re.findall(r'id="help-([a-z-]+)"', page))
+    for target in set(re.findall(r'data-help="([a-z-]+)"', page)):
+        assert target in sections, target
+    assert client.get("/static/help.js").status_code == 200
 
 
 def test_duplicate_rename_and_notes(client):
