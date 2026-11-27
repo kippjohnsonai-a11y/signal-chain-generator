@@ -186,8 +186,13 @@ def test_first_run_setup_says_what_is_missing_until_done(tmp_path, monkeypatch):
         "guest": False, "api_key": True, "api_key_from_env": False,
         "pedal": {"connected": True, "description": "HX Stomp XL", "error": ""},
         "guitars": 1, "hx_edit": str(tmp_path / "HX Edit.app"), "done": True}
+    # A key saved in Settings wins over one in the environment.
     monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-ant-from-shell")
+    assert client.get("/api/setup").json()["api_key_from_env"] is False
+    assert config.anthropic_api_key() == "sk-ant-x"
+    config.write_settings({"anthropic_api_key": ""})
     assert client.get("/api/setup").json()["api_key_from_env"] is True
+    assert config.anthropic_api_key() == "sk-ant-from-shell"
 
 
 def test_page_is_utf8_on_every_platform(client):

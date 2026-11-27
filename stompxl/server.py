@@ -692,8 +692,8 @@ def create_app(library: Library | None = None, caller_factory: Any = None) -> Fa
         return {
             "guest": guest,
             "api_key": bool(config.anthropic_api_key()),
-            # Where the key comes from: a shell variable can't be changed in Settings.
-            "api_key_from_env": bool(os.environ.get("ANTHROPIC_API_KEY")),
+            # Only from the environment when no key is saved in Settings.
+            "api_key_from_env": config.anthropic_api_key_source() == "env",
             "pedal": pedal_info,
             "guitars": len(lib.guitars()),
             "hx_edit": hx_edit,

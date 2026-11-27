@@ -1885,7 +1885,7 @@ async function renderSetup() {
       s.guitars ? `${s.guitars} guitar${s.guitars === 1 ? "" : "s"} added.` : "Presets are dialled for a guitar and its pickups.",
       `<button type="button" class="ghost" data-open="guitars-dialog">Guitars</button>`),
     step(s.api_key, "Anthropic API key (optional)",
-      s.api_key_from_env ? "Using the ANTHROPIC_API_KEY set on this computer (an environment variable, maybe from another tool). Each preset shows what Claude cost."
+      s.api_key_from_env ? "Using the ANTHROPIC_API_KEY set on this computer (an environment variable, maybe from another tool). To use a different key just for this app, add it here; the variable is left alone."
         : s.api_key ? "A key is set. Each preset shows what Claude cost."
         : "Claude builds and tweaks presets with your own key, from console.anthropic.com. Songs, sets, editing, imports and the pedal all work without one.",
       `<button type="button" class="ghost" data-open="settings-dialog" data-section="claude" data-title="Claude">Add a key</button>`),
