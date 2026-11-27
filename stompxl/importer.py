@@ -88,9 +88,12 @@ def hlx_to_chain(hlx: dict[str, Any], *, captures: list[dict[str, Any]] | None =
     notes: list[str] = []
     device = data.get("device")
     if device not in (None, xl.DEVICE_ID):
-        notes.append(f"Made for another Helix device ({device}); imported what the Stomp XL can run.")
+        other = next((p.name for p in xl.PEDALS.values() if p.device_id == device), None)
+        notes.append(f"Made for the {other}; imported for the {xl.PEDAL_NAME}." if other else
+                     f"Made for another Helix device ({device}); imported what the "
+                     f"{xl.PEDAL_NAME} can run.")
     if any(isinstance(tone.get(k), dict) and _blocks_of(tone[k]) for k in ("dsp1",)):
-        notes.append("Its second DSP's blocks were left out: the Stomp XL has one DSP.")
+        notes.append(f"Its second DSP's blocks were left out: the {xl.PEDAL_NAME} has one DSP.")
 
     raw_blocks = _blocks_of(dsp0)
     if any(b.get("@path", 0) for _, b in raw_blocks):
@@ -255,7 +258,7 @@ def _import_snapshots(tone: dict[str, Any], blocks: list[dict[str, Any]],
                    if k.startswith("snapshot") and k[8:].isdigit() and isinstance(v, dict))
     valid = [s for _, s in found if s.get("@valid", True)]
     if len(valid) > xl.SNAPSHOT_COUNT:
-        notes.append(f"It had {len(valid)} snapshots; the Stomp XL keeps the first {xl.SNAPSHOT_COUNT}.")
+        notes.append(f"It had {len(valid)} snapshots; the {xl.PEDAL_NAME} keeps the first {xl.SNAPSHOT_COUNT}.")
     out = []
     for number, snap in enumerate(valid[: xl.SNAPSHOT_COUNT]):
         changes: dict[str, dict[str, Any]] = {}

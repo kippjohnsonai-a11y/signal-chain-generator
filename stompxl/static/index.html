@@ -224,7 +224,7 @@
         <h3>My rig</h3>
         <button class="more-item" data-open="guitars-dialog">Guitars<span id="more-guitars"></span></button>
         <button class="more-item" data-open="settings-dialog" data-section="nam" data-title="NAM captures">NAM captures<span id="more-nam"></span></button>
-        <button class="more-item" data-open="settings-dialog" data-section="pedal" data-title="Expression and gate">Expression and gate<span>Your expression pedal setup and input noise gate</span></button>
+        <button class="more-item" data-open="settings-dialog" data-section="pedal" data-title="Pedal setup">Pedal setup<span>Which pedal you have, your expression pedal and the input noise gate</span></button>
         <button class="more-item" id="more-relay" hidden>Use pedal on this device<span>The pedal plugged into this phone or computer</span></button>
         <button class="more-item" id="more-remote" type="button" hidden>This device is a remote<span>The pedal plugs into the computer running the app</span></button>
       </div>
@@ -386,8 +386,10 @@
     <p class="hint">Higher effort gives more careful tones but takes longer and costs more. Medium is a good default.</p>
     </div>
     <div data-set="pedal" class="stack">
+    <label>Your pedal <select name="pedal_model" id="pedal-model-select"></select></label>
+    <p class="hint">Which Line 6 pedal presets are made for. The app switches this itself when you plug a pedal in. HX Stomp support is new: tell us how it goes with Report a problem.</p>
     <label>Expression pedal <select name="exp_pedal" id="exp-select"></select></label>
-    <p class="hint">An expression pedal is a rocker pedal plugged into the Stomp XL's EXP jack, used for wah, volume or swells. Pick what you have, or leave the first choice if you don't have one.</p>
+    <p class="hint">An expression pedal is a rocker pedal plugged into the pedal's EXP jack, used for wah, volume or swells. Pick what you have, or leave the first choice if you don't have one.</p>
     <label>Input noise gate <select name="gate_mode" id="gate-select"></select></label>
     <p class="hint">A noise gate silences hiss and hum when you stop playing. "On" suits most people.</p>
     </div>
@@ -461,7 +463,7 @@
 <dialog id="help-dialog" class="wide page help-dialog" aria-labelledby="help-title">
   <button type="button" class="page-back" data-close-dialog>&lsaquo; Back</button>
   <h2 id="help-title">How to use this app</h2>
-  <p>Signal Chain Generator makes presets for the Line 6 HX Stomp XL. You type a song, pick your guitar, and it builds the amp and effects for that song, ready to send to the pedal. You can then tweak the sound in plain words, keep set lists, and use big Stage buttons at a gig.</p>
+  <p>Signal Chain Generator makes presets for the Line 6 HX Stomp XL and HX Stomp. You type a song, pick your guitar, and it builds the amp and effects for that song, ready to send to the pedal. You can then tweak the sound in plain words, keep set lists, and use big Stage buttons at a gig.</p>
   <nav class="help-toc" aria-label="Contents">
     <button type="button" class="chip" data-help="start">Before you start</button>
     <button type="button" class="chip" data-help="guitar">1. Add your guitar</button>
@@ -480,7 +482,7 @@
   <section id="help-start" class="help-section">
     <h3>Before you start</h3>
     <ol class="help-steps">
-      <li><b>Your HX Stomp XL and a USB cable.</b> Use a good, newer cable that carries data. Some cables only charge, and an old cable can let the app read the pedal but make sending presets fail.</li>
+      <li><b>Your HX Stomp XL or HX Stomp and a USB cable.</b> Use a good, newer cable that carries data. Some cables only charge, and an old cable can let the app read the pedal but make sending presets fail.</li>
       <li><b>HX Edit installed.</b> HX Edit is Line 6's free editor (line6.com/software). The app reads the pedal's list of amps and effects from it, so it must be installed. <b>Close HX Edit while you use this app</b>: only one program can talk to the pedal at a time.</li>
       <li><b>An Anthropic API key (optional).</b> Claude, the AI that builds and tweaks presets, runs on your own key from console.anthropic.com. You pay Anthropic directly, usually a few cents to a few tens of cents per preset. Without a key you can still import presets, build them by hand, edit, make set lists and send to the pedal. Add the key in More &gt; Claude.</li>
       <li><b>Back up your pedal once.</b> In HX Edit choose File &gt; Backup before your first send. The app also backs up each slot before it overwrites it, but your own backup is the safest.</li>
@@ -506,7 +508,7 @@
 
   <section id="help-song" class="help-section">
     <h3>3. Read a song</h3>
-    <p>A song opens on its <b>Play</b> tab. The row of buttons across the top (Intro, Verse, Chorus, Solo) are the <b>4 snapshots</b>: one sound for each part of the song. Tap one to see how the preset changes for that part. On the pedal you switch snapshots with footswitches FS1 and FS4.</p>
+    <p>A song opens on its <b>Play</b> tab. The row of buttons across the top (Intro, Verse, Chorus, Solo) are the <b><span class="snap-count">4</span> snapshots</b>: one sound for each part of the song. Tap one to see how the preset changes for that part. On the pedal you switch snapshots with footswitches <span class="snap-switches">FS1 and FS4</span>.</p>
     <p>Below them is the <b>signal chain</b>: each box is one <b>block</b> (an effect, the amp or the speaker cabinet), in the order your guitar's sound goes through them. A green lamp means the block is on in this snapshot, a dark lamp means off. "FS 2" on a block means footswitch 2 turns it on and off. <b>Explain</b> tells you what a block does and why it's there; <b>Tune</b> opens it big with sliders.</p>
     <p>The other tabs: <b>Tweak</b> to change the sound with Claude, <b>Notes</b> for your own notes and the song plan (which pickup and knob settings to use in each part), and <b>Versions</b> for every earlier version of this song.</p>
   </section>
@@ -592,11 +594,11 @@
       <dt>Block</dt><dd>One box in the chain: an effect pedal, the amp, the cabinet, and so on.</dd>
       <dt>Signal chain</dt><dd>The blocks in the order your sound goes through them, from guitar to output.</dd>
       <dt>Amp and cab</dt><dd>The amp model shapes the main tone. The cab (cabinet) is the speaker it plays through, which matters a lot on headphones or a PA.</dd>
-      <dt>Footswitch (FS)</dt><dd>The pedal's stomp switches. FS2, FS3, FS5 and FS6 turn effects on and off; FS1 and FS4 change snapshots.</dd>
+      <dt>Footswitch (FS)</dt><dd id="fs-glossary">The pedal's stomp switches. FS2, FS3, FS5 and FS6 turn effects on and off; FS1 and FS4 change snapshots.</dd>
       <dt>DSP</dt><dd>The pedal's processing power. Each block uses some; when it runs out, nothing more fits.</dd>
       <dt>Output rig</dt><dd>What the pedal plugs into: headphones, a speaker or PA, or a real amp. It decides whether the preset includes an amp.</dd>
       <dt>FRFR</dt><dd>"Full range, flat response": a speaker made for modelers, which sounds like a PA rather than a guitar amp.</dd>
-      <dt>Expression pedal (EXP)</dt><dd>A rocker pedal for wah, volume or swells, plugged into the Stomp XL.</dd>
+      <dt>Expression pedal (EXP)</dt><dd>A rocker pedal for wah, volume or swells, plugged into the pedal.</dd>
       <dt>Wah</dt><dd>The "wah-wah" effect, worked with an expression pedal.</dd>
       <dt>Looper</dt><dd>Records a part and plays it back while you play over it.</dd>
       <dt>Poly Capo</dt><dd>Shifts your guitar up or down in pitch without retuning. It uses a lot of DSP.</dd>
@@ -706,7 +708,7 @@
     <p class="hint" id="model-info"></p>
     <label id="position-row">Position <select name="position"></select></label>
     <label>Footswitch
-      <select name="switch">
+      <select name="switch" id="switch-select">
         <option value="">None</option>
         <option value="1">FS1 (snapshot up/down in 4-switch mode)</option>
         <option value="2">FS2</option>
@@ -757,7 +759,7 @@
   <form id="name-form" class="stack">
     <label>Version name <input name="label" required placeholder="e.g. Live, Les Paul, quieter"></label>
     <label>Preset name on the pedal <input name="preset_name" maxlength="16" required></label>
-    <p class="hint">Up to 16 characters: what the Stomp XL's screen and HX Edit show after you send it.</p>
+    <p class="hint">Up to 16 characters: what the pedal's screen and HX Edit show after you send it.</p>
     <div class="row">
       <button class="primary" type="submit" id="name-submit">Save</button>
       <button type="button" class="ghost" id="name-cancel">Cancel</button>

@@ -374,7 +374,31 @@ function formData(form) {
   return data;
 }
 
-function slotLabel(slot) { return `${Math.floor(slot / 4) + 1}${"ABCD"[slot % 4]}`; }
+function slotLabel(slot) {
+  // Four presets a bank (A-D) on the Stomp XL, three (A-C) on the HX Stomp.
+  const size = state.pedal?.bank_size || 4;
+  return `${Math.floor(slot / size) + 1}${"ABCD"[slot % size]}`;
+}
+function pedalName() { return state.pedal?.name || "HX Stomp XL"; }
+function isStomp() { return state.pedal?.key === "stomp"; }
+// How the player changes snapshots, for the help text.
+function snapSwitches() { return isStomp() ? "FS1, FS2 and FS3 (in Snapshot mode)" : "FS1 and FS4"; }
+function switchHint() {
+  return isStomp()
+    ? "FS1-FS3 pick the snapshots in Snapshot mode; in Stomp mode they switch the blocks marked FS 1-3."
+    : "FS2/FS3 are the top stomps, FS5/FS6 the bottom; FS1/FS4 change snapshots.";
+}
+function renderPedalText() {
+  for (const el of document.querySelectorAll(".pedal-name")) el.textContent = pedalName();
+  for (const el of document.querySelectorAll(".snap-count")) el.textContent = String(state.pedal?.snapshot_count || 4);
+  for (const el of document.querySelectorAll(".snap-switches")) el.textContent = snapSwitches();
+  $("#fs-glossary").textContent = isStomp()
+    ? "The pedal's three switches. In Snapshot mode FS1, FS2 and FS3 pick the song's sections; in Stomp mode they turn effects on and off."
+    : "The pedal's stomp switches. FS2, FS3, FS5 and FS6 turn effects on and off; FS1 and FS4 change snapshots.";
+  $("#switch-select").innerHTML = `<option value="">None</option>` + (isStomp()
+    ? [1, 2, 3].map((n) => `<option value="${n}">FS${n} (picks snapshot ${n} in Snapshot mode)</option>`).join("")
+    : [1, 2, 3, 4, 5, 6].map((n) => `<option value="${n}">FS${n}${n === 1 || n === 4 ? " (snapshot up/down in 4-switch mode)" : ""}</option>`).join(""));
+}
 
 // ---------------------------------------------------------------- state
 
@@ -402,6 +426,9 @@ async function loadState() {
     .map(([k, label]) => `<option value="${k}">${esc(label)}</option>`).join("");
   $("#gate-select").innerHTML = Object.entries(state.settings.gate_modes)
     .map(([k, label]) => `<option value="${k}">${esc(label)}</option>`).join("");
+  $("#pedal-model-select").innerHTML = Object.entries(state.settings.pedal_models || {})
+    .map(([k, label]) => `<option value="${k}">${esc(label)}</option>`).join("");
+  renderPedalText();
   $("#report-btn").hidden = !!(state.account || {}).guest;
   renderTagFilter();
   renderSongs();
@@ -981,7 +1008,7 @@ function renderVersion() {
         <input id="add-tag" list="tag-options" placeholder="+ tag" maxlength="32" autocomplete="off"></div>
     </div>
 
-    ${paneWrap("play", helpTip("song-play", `The buttons across the top of the chain are the song's <b>snapshots</b>, one sound per part of the song (switch them on the pedal with FS1 and FS4). Each box is a <b>block</b>: an effect, the amp or the cabinet. <b>Explain</b> says what a block does, <b>Tune</b> opens it with sliders, and <b>Send to pedal</b> puts the preset on your pedal.`, "song"))}
+    ${paneWrap("play", helpTip("song-play", `The buttons across the top of the chain are the song's <b>snapshots</b>, one sound per part of the song (switch them on the pedal with ${snapSwitches()}). Each box is a <b>block</b>: an effect, the amp or the cabinet. <b>Explain</b> says what a block does, <b>Tune</b> opens it with sliders, and <b>Send to pedal</b> puts the preset on your pedal.`, "song"))}
     <div class="card" id="chain-card" data-pane="play">${renderChainCard(v)}</div>
 
     <div class="card" data-pane="notes">
@@ -1089,7 +1116,7 @@ function renderChainCard(v) {
     <div class="chain ${structural ? "editing" : ""}">${renderIo((view.io || [])[0])}${renderChain(view)}${structural && view.blocks.length < 8 ? '<button class="add-block" id="add-block">+ Add block</button>' : ""}${renderIo((view.io || [])[1])}</div>
     <p class="hint">${structural
       ? "Type any value, or click ON/OFF to switch a block in this snapshot. Drag a block by its ⠿ handle (or use ◀ ▶) to move it. \"Change block\" swaps the model, sets its footswitch and expression pedal, or removes it. Amber values change per snapshot, so they edit this snapshot only; tick \"This snapshot only\" to do the same for any other value. Saving makes a new version; the one you started from is kept."
-      : "Tap Tune for sliders and quick picks. A dark lamp means off in this snapshot; amber values change per snapshot. FS2/FS3 are the top stomps, FS5/FS6 the bottom; FS1/FS4 change snapshots."}</p>`;
+      : "Tap Tune for sliders and quick picks. A dark lamp means off in this snapshot; amber values change per snapshot. " + switchHint()}</p>`;
 }
 
 function rerenderChainCard() {
@@ -1746,6 +1773,7 @@ function fillSettings() {
   f.elements.claude_effort.value = state.settings.claude_effort;
   f.elements.exp_pedal.value = state.settings.exp_pedal;
   f.elements.gate_mode.value = state.settings.gate_mode;
+  f.elements.pedal_model.value = state.settings.pedal_model;
   f.elements.nam_captures.value = (state.settings.nam_captures || []).map(captureLine).join("\n");
   namRowEdit(null);
   renderNamRows();
@@ -1907,7 +1935,7 @@ async function renderSetup() {
     step(s.pedal?.connected, "The pedal",
       s.pedal?.connected ? `Connected: ${esc(s.pedal.description)}.`
         : ((typeof PedalRelay !== "undefined" && PedalRelay.status().supported) ? "" : `${REMOTE_NOTE} `)
-          + "Plug the HX Stomp XL into the computer running the app with a USB cable that carries data (some charging cables don't, and an old one can make sending fail), and quit HX Edit: only one app can hold the pedal at a time."
+          + `Plug the ${esc(pedalName())} into the computer running the app with a USB cable that carries data (some charging cables don't, and an old one can make sending fail), and quit HX Edit: only one app can hold the pedal at a time.`
           + (s.pedal?.error ? ` The app says: ${esc(s.pedal.error)}` : "")),
   ].join("");
   return s;
@@ -2402,7 +2430,7 @@ $("#push-form").addEventListener("submit", async (e) => {
     if (ok) {
       const fixed = await runJob("Making it fit", () => api(`/api/versions/${current.versionId}/refine`, {
         method: "POST",
-        body: { feedback: `The pedal ran out of DSP placing ${failed.dsp_refused}. Make the chain lighter so it fits the Stomp XL: drop or swap ${failed.dsp_refused} (or another heavy block) for a cheaper option and keep the amp and the song's core sound.` },
+        body: { feedback: `The pedal ran out of DSP placing ${failed.dsp_refused}. Make the chain lighter so it fits the ${pedalName()}: drop or swap ${failed.dsp_refused} (or another heavy block) for a cheaper option and keep the amp and the song's core sound.` },
       }));
       if (fixed) {
         await loadState();
@@ -2455,7 +2483,7 @@ $("#settings-form").addEventListener("submit", async (e) => {
   e.preventDefault();
   if ($("#nam-row-name").value.trim()) namRowSave(); // a capture typed but not added yet
   const d = formData(e.target);
-  const body = { claude_model: d.claude_model, claude_effort: d.claude_effort, exp_pedal: d.exp_pedal, gate_mode: d.gate_mode, nam_captures: parseCaptures(d.nam_captures) };
+  const body = { claude_model: d.claude_model, claude_effort: d.claude_effort, exp_pedal: d.exp_pedal, gate_mode: d.gate_mode, pedal_model: d.pedal_model, nam_captures: parseCaptures(d.nam_captures) };
   if (d.anthropic_api_key) body.anthropic_api_key = d.anthropic_api_key;
   if (d.diagnostics_token) body.diagnostics_token = d.diagnostics_token;
   await api("/api/settings", { method: "PUT", body });
@@ -2552,7 +2580,7 @@ function namCard(v) {
   }
   return `<div class="card"><h3>NAM on the computer</h3>
     <p>${c.suggested ? "No capture in your list fits. Find one like this" : "Load this capture in NAM"}: <b>${esc(c.name)}</b>${c.cab ? "" : ", plus a cab IR"}.</p>
-    <p class="hint">Guitar into the pedal's Return L jack. DAW at 48 kHz: one track in from the Stomp's send, NAM and the IR on it, out to USB 5/6. Load this preset through HX Edit (download the .hlx); the USB push can't set up path B. To switch captures with the pedal, map this preset's MIDI program change to the capture in your plugin host (docs/nam.md).</p></div>`;
+    <p class="hint">Guitar into the pedal's Return L jack. DAW at 48 kHz: one track in from the pedal's send, NAM and the IR on it, out to USB 5/6. Load this preset through HX Edit (download the .hlx); the USB push can't set up path B. To switch captures with the pedal, map this preset's MIDI program change to the capture in your plugin host (docs/nam.md).</p></div>`;
 }
 
 async function refreshPedal() {
@@ -2561,6 +2589,11 @@ async function refreshPedal() {
   const pill = $("#pedal-pill");
   try {
     const s = await api("/api/pedal");
+    // Plugging in the other pedal switches what presets are made for.
+    if (s.pedal_model && state.pedal && s.pedal_model !== state.pedal.key) {
+      await loadState();
+      toast(`Making presets for the ${pedalName()} now`);
+    }
     const relay = PedalRelay.status();
     if (s.connected) {
       const here = s.where ? (relay.active ? ` · on this ${s.where}` : ` · on a ${s.where}`) : "";
@@ -2572,8 +2605,8 @@ async function refreshPedal() {
       // A phone or tablet that can't reach USB from the browser (every iPhone
       // and iPad) is a remote: the pedal goes into the computer.
       pill.title = s.error || (relay.supported
-        ? "Connect the Stomp XL over USB, switch it on and quit HX Edit (only one app can use the pedal at a time)"
-        : `Plug the Stomp XL into the computer running the app, switch it on and quit HX Edit there. ${REMOTE_NOTE}`);
+        ? `Connect the ${pedalName()} over USB, switch it on and quit HX Edit (only one app can use the pedal at a time)`
+        : `Plug the ${pedalName()} into the computer running the app, switch it on and quit HX Edit there. ${REMOTE_NOTE}`);
       pill.className = "pill";
     }
   } catch (_) { pill.querySelector(".pill-text").textContent = "Pedal: ?"; }
