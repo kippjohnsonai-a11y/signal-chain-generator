@@ -454,7 +454,8 @@ function renderSongs() {
       <div class="grow"><span class="title">${x.starred ? '<span class="star" aria-label="Starred">★</span> ' : ""}${esc(x.title)}</span><div class="sub">${esc(x.artist || "")}</div></div>
       <span class="row-guitar">${x.guitar_id ? esc(guitarName(x.guitar_id)) : ""}</span>
       <span class="slot-badge${x.pushed_slot == null ? " none" : ""}" title="${x.pushed_slot == null ? "Not sent to the pedal yet" : "On the pedal in " + slotLabel(x.pushed_slot)}">${x.pushed_slot == null ? "—" : slotLabel(x.pushed_slot)}</span></li>`).join("")
-    || `<li class="sub empty-row">${state.songs.length ? "No songs match" : "No songs yet"}</li>`;
+    || `<li class="sub empty-row">${state.songs.length ? "No songs match"
+      : 'No songs yet. Tap <b>+ New song</b> to make your first one, or see <button type="button" class="ghost small" data-help="first-song">how it works</button>.'}</li>`;
 }
 
 async function starSong(songId) {
@@ -968,6 +969,7 @@ function renderVersion() {
         <input id="add-tag" list="tag-options" placeholder="+ tag" maxlength="32" autocomplete="off"></div>
     </div>
 
+    ${paneWrap("play", helpTip("song-play", `The buttons across the top of the chain are the song's <b>snapshots</b>, one sound per part of the song (switch them on the pedal with FS1 and FS4). Each box is a <b>block</b>: an effect, the amp or the cabinet. <b>Explain</b> says what a block does, <b>Tune</b> opens it with sliders, and <b>Send to pedal</b> puts the preset on your pedal.`, "song"))}
     <div class="card" id="chain-card" data-pane="play">${renderChainCard(v)}</div>
 
     <div class="card" data-pane="notes">
@@ -978,6 +980,7 @@ function renderVersion() {
 
     <div class="card" data-pane="tweak">
       <h3>Tweak it with Claude</h3>
+      <p class="hint">Say what you'd like to change in your own words, as you would to a bandmate. Claude makes a new version and lists every value it changed; this version is kept, so you can always go back.</p>
       <form id="refine-form">
         <textarea name="feedback" required placeholder="e.g. too muddy on the Les Paul · the solo needs to jump out more · less reverb in the verse"></textarea>
         <div class="row" style="align-items:center">
@@ -1915,6 +1918,8 @@ $("#setup-recheck").addEventListener("click", () => renderSetup());
 $("#setup-finish").addEventListener("click", async () => {
   await api("/api/setup/done", { method: "POST" });
   $("#setup-dialog").close();
+  // First time through: straight on to the walkthrough.
+  if (typeof helpSeen === "function" && !helpSeen()) openHelp();
 });
 // Back from adding a guitar or a key: tick it off.
 for (const id of ["#guitars-dialog", "#settings-dialog"]) {
@@ -2548,7 +2553,7 @@ async function refreshPedal() {
       pill.className = "pill " + (s.verified ? "ok" : "warn");
     } else {
       pill.querySelector(".pill-text").textContent = s.error ? "Pedal: USB unavailable" : "Pedal: not connected";
-      pill.title = s.error || "Connect the Stomp XL over USB";
+      pill.title = s.error || "Connect the Stomp XL over USB, switch it on and quit HX Edit (only one app can use the pedal at a time)";
       pill.className = "pill";
     }
   } catch (_) { pill.querySelector(".pill-text").textContent = "Pedal: ?"; }
