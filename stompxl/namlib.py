@@ -33,7 +33,7 @@ def folder() -> Path:
     chosen = config.get_setting(FOLDER_SETTING)
     if chosen:
         path = Path(chosen).expanduser()
-    elif (sys.platform == "darwin" and not os.environ.get(config.DATA_DIR_ENV)
+    elif (sys.platform in ("darwin", "win32") and not os.environ.get(config.DATA_DIR_ENV)
           and not users.is_guest()):
         path = Path.home() / "Music" / "StompXL NAM"
     else:
@@ -61,7 +61,7 @@ def pack(name: str) -> list[dict[str, Any]]:
     """One ready-made pack's captures."""
     if name not in PACKS:
         raise ValueError(f"No pack called {name}: try {', '.join(PACKS)}")
-    data = json.loads(resources.files("stompxl").joinpath(PACKS[name]).read_text())
+    data = json.loads(resources.files("stompxl").joinpath(PACKS[name]).read_text(encoding="utf-8"))
     return list(data["captures"])
 
 

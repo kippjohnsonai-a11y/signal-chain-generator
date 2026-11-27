@@ -35,6 +35,9 @@ def base_dir() -> Path:
         # Installs from before the rename keep their library where it is.
         legacy = support / LEGACY_FOLDER
         path = legacy if legacy.is_dir() else support / APP_NAME
+    elif sys.platform == "win32":
+        appdata = os.environ.get("APPDATA")
+        path = (Path(appdata) if appdata else Path.home() / "AppData" / "Roaming") / APP_NAME
     else:
         path = Path.home() / ".stompxl"
     path.mkdir(parents=True, exist_ok=True)
@@ -69,7 +72,7 @@ def _settings_path() -> Path:
 
 def _read(path: Path) -> dict[str, Any]:
     try:
-        return json.loads(path.read_text())
+        return json.loads(path.read_text(encoding="utf-8"))
     except (OSError, ValueError):
         return {}
 
@@ -91,7 +94,7 @@ def write_settings(values: dict[str, Any]) -> None:
             settings[key] = value
     path = _settings_path()
     tmp = path.with_suffix(".tmp")
-    tmp.write_text(json.dumps(settings, indent=2))
+    tmp.write_text(json.dumps(settings, indent=2), encoding="utf-8")
     tmp.chmod(stat.S_IRUSR | stat.S_IWUSR)
     tmp.replace(path)
 

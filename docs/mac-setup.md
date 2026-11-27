@@ -24,11 +24,10 @@ Check it worked: `brew --version` should print a version number.
 ## 2. Install the tools the app needs
 
 ```bash
-brew install uv libusb
+brew install uv
 ```
 
 - **uv** installs Python and the app's libraries
-- **libusb** lets the app talk to the pedal over USB
 
 ## 3. Download the app
 
@@ -135,8 +134,8 @@ The first click takes a minute or two while it installs Python for this user.
 | Problem | Fix |
 | --- | --- |
 | `zsh: command not found: brew` | Run the three "Next steps" lines from step 1, or open a new Terminal window. |
-| `command not found: uv` | Run `brew install uv libusb` again. |
-| Top bar says **Pedal: USB unavailable** | `brew install libusb`, then stop the app (Ctrl+C) and start it again. |
+| `command not found: uv` | Run `brew install uv` again. |
+| Top bar says **Pedal: USB unavailable** | Run `uv sync` in the app's folder (it ships its own libusb), then stop the app (Ctrl+C) and start it again. |
 | Top bar says **Pedal: not connected** | Quit HX Edit, check the USB cable, and try another port (not a hub). |
 | "HX Edit's symbol table was not found" | Install HX Edit (step 4); keep it installed but closed. |
 | "address already in use" | Another copy is already running, maybe in another user's account. Use the launcher (it picks a port per user), or start with `uv run stompxl --port 8767`. |

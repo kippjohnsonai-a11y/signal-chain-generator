@@ -92,7 +92,7 @@ def _usage_path() -> Path:
 
 def claude_used_today() -> int:
     try:
-        usage = json.loads(_usage_path().read_text())
+        usage = json.loads(_usage_path().read_text(encoding="utf-8"))
     except (OSError, ValueError):
         return 0
     return int(usage.get(time.strftime("%Y-%m-%d"), 0)) if isinstance(usage, dict) else 0
@@ -112,5 +112,5 @@ def charge_claude_job() -> None:
         today = time.strftime("%Y-%m-%d")
         path = _usage_path()
         tmp = path.with_suffix(".tmp")
-        tmp.write_text(json.dumps({today: used + 1}))
+        tmp.write_text(json.dumps({today: used + 1}), encoding="utf-8")
         tmp.replace(path)

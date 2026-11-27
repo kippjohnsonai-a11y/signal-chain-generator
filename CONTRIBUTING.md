@@ -6,7 +6,7 @@ are all welcome.
 ## Running it from source
 
 ```bash
-brew install uv libusb
+brew install uv
 git clone <this repository> && cd <its folder>
 uv run signal-chain-generator          # or the older name: uv run stompxl
 ```

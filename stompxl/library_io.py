@@ -15,6 +15,7 @@ an import can always be undone by importing that file.
 
 from __future__ import annotations
 
+import contextlib
 import json
 import sqlite3
 import tempfile
@@ -57,7 +58,7 @@ def export_zip(lib: Any, dest: Path) -> dict[str, Any]:
     with tempfile.TemporaryDirectory() as tmp:
         db = Path(tmp) / "library.sqlite3"
         lib.snapshot(db)
-        with sqlite3.connect(db) as c:
+        with contextlib.closing(sqlite3.connect(db)) as c:
             songs = c.execute("SELECT COUNT(*) FROM songs").fetchone()[0]
             versions = c.execute("SELECT COUNT(*) FROM versions").fetchone()[0]
         settings = {k: v for k, v in config.read_settings().items()
@@ -119,7 +120,7 @@ def import_zip(lib: Any, source: Path, *, before_dir: Path | None = None) -> dic
         except KeyError as exc:
             raise ImportRefused("That library export has no library in it.") from exc
         try:
-            with sqlite3.connect(db) as c:
+            with contextlib.closing(sqlite3.connect(db)) as c:
                 if c.execute("PRAGMA integrity_check").fetchone()[0] != "ok":
                     raise ImportRefused("The library in that file is damaged.")
                 tables = {r[0] for r in c.execute("SELECT name FROM sqlite_master WHERE type = 'table'")}

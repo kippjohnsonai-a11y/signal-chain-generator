@@ -96,7 +96,7 @@ def _hash(token: str) -> str:
 def devices() -> list[dict[str, Any]]:
     path = _devices_path()
     try:
-        data = json.loads(path.read_text()) if path.exists() else []
+        data = json.loads(path.read_text(encoding="utf-8")) if path.exists() else []
     except ValueError:
         logger.warning("devices.json is damaged; no phones are paired until it's fixed.")
         return []
@@ -106,7 +106,7 @@ def devices() -> list[dict[str, Any]]:
 def _save(items: list[dict[str, Any]]) -> None:
     path = _devices_path()
     tmp = path.with_suffix(".tmp")
-    tmp.write_text(json.dumps(items, indent=2))
+    tmp.write_text(json.dumps(items, indent=2), encoding="utf-8")
     tmp.chmod(0o600)
     tmp.replace(path)
 

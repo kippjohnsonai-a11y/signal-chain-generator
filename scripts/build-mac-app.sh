@@ -12,6 +12,7 @@
 #                   ASC_ISSUER_ID, for notarization
 
 set -euo pipefail
+trap 'echo "build-mac-app.sh: failed at line $LINENO: $BASH_COMMAND" >&2' ERR
 
 VERSION="${1:?usage: build-mac-app.sh VERSION}"
 UV_VERSION="${UV_VERSION:-0.11.32}"
@@ -28,8 +29,8 @@ mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 work="$(mktemp -d)"
 for arch in aarch64 x86_64; do
     base="https://github.com/astral-sh/uv/releases/download/$UV_VERSION/uv-$arch-apple-darwin.tar.gz"
-    curl -fsSL -o "$work/uv.tar.gz" "$base"
-    expected="$(curl -fsSL "$base.sha256" | awk '{print $1}')"
+    curl -fsSL --show-error --retry 3 --retry-all-errors -o "$work/uv.tar.gz" "$base"
+    expected="$(curl -fsSL --show-error --retry 3 --retry-all-errors "$base.sha256" | awk '{print $1}')"
     actual="$(shasum -a 256 "$work/uv.tar.gz" | awk '{print $1}')"
     [ "$expected" = "$actual" ] || { echo "uv download checksum mismatch ($arch)" >&2; exit 1; }
     tar -xzf "$work/uv.tar.gz" -C "$work"

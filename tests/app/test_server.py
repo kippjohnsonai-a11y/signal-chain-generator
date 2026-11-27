@@ -168,14 +168,29 @@ def test_duplicate_rename_and_notes(client):
 def test_first_run_setup_says_what_is_missing_until_done(tmp_path, monkeypatch):
     monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
     monkeypatch.setattr("stompxl.helixgen.device.hxedit.find_hx_edit", lambda: None)
+    from stompxl import pedal
+
+    monkeypatch.setattr(pedal, "status", lambda: pedal.DeviceStatus(connected=False, error="no libusb"))
     lib = Library(tmp_path / "library.sqlite3")
     client = TestClient(create_app(lib))
+    no_pedal = {"connected": False, "description": "", "error": "no libusb"}
     assert client.get("/api/setup").json() == {
-        "guest": False, "api_key": False, "guitars": 0, "hx_edit": None, "done": False}
+        "guest": False, "api_key": False, "api_key_from_env": False, "pedal": no_pedal,
+        "guitars": 0, "hx_edit": None, "done": False}
     client.post("/api/guitars", json={"name": "Strat", "pickups": "SSS"})
     monkeypatch.setattr("stompxl.helixgen.device.hxedit.find_hx_edit", lambda: tmp_path / "HX Edit.app")
     config.write_settings({"anthropic_api_key": "sk-ant-x"})
+    monkeypatch.setattr(pedal, "status", lambda: pedal.DeviceStatus(connected=True, description="HX Stomp XL"))
     client.post("/api/setup/done")
     assert client.get("/api/setup").json() == {
-        "guest": False, "api_key": True, "guitars": 1, "hx_edit": str(tmp_path / "HX Edit.app"),
-        "done": True}
+        "guest": False, "api_key": True, "api_key_from_env": False,
+        "pedal": {"connected": True, "description": "HX Stomp XL", "error": ""},
+        "guitars": 1, "hx_edit": str(tmp_path / "HX Edit.app"), "done": True}
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-ant-from-shell")
+    assert client.get("/api/setup").json()["api_key_from_env"] is True
+
+
+def test_page_is_utf8_on_every_platform(client):
+    page = client.get("/")
+    assert "charset=utf-8" in page.headers["content-type"]
+    assert "�" not in page.text and "â" not in page.text

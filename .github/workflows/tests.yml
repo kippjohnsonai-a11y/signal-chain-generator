@@ -29,6 +29,23 @@ jobs:
       - name: Test
         run: uv run --locked --extra dev pytest -q
 
+  # The app also runs on Macs and (being tested) Windows: run the suite there too.
+  test-desktop:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install uv
+        run: pipx install uv==0.11.32
+      - name: Test
+        run: uv run --locked --extra dev pytest -q
+
   # Build the Mac app unsigned and check that its bundled uv can run a release.
   mac-app:
     runs-on: macos-latest

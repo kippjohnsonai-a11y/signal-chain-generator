@@ -66,5 +66,5 @@ def run() -> tuple[str, list[str]]:
             parts.append("not in HX Edit " + ", ".join(gap["unknown"]))
         lines.append(f"  {name} ({gap['symbol']}): " + "; ".join(parts))
     path = config.data_dir() / "model-audit.json"
-    path.write_text(json.dumps(gaps, indent=1))
+    path.write_text(json.dumps(gaps, indent=1), encoding="utf-8")
     return str(path), lines

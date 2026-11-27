@@ -16,7 +16,7 @@ Below, `assistant` is the account's short name. If yours is different (run `id -
 HX Edit must be installed on the Mac mini (in `/Applications`, so every account sees it). The app reads its model table to talk to the pedal.
 
 ```bash
-brew install uv libusb             # skip any already installed (Homebrew is shared)
+brew install uv                    # skip any already installed (Homebrew is shared)
 git clone https://github.com/kippjohnsonai-a11y/signal-chain-generator.git ~/stompxl
 cd ~/stompxl && uv sync            # installs Python and the libraries once
 ```

@@ -1885,14 +1885,17 @@ async function renderSetup() {
       s.guitars ? `${s.guitars} guitar${s.guitars === 1 ? "" : "s"} added.` : "Presets are dialled for a guitar and its pickups.",
       `<button type="button" class="ghost" data-open="guitars-dialog">Guitars</button>`),
     step(s.api_key, "Anthropic API key (optional)",
-      s.api_key ? "A key is set. Each preset shows what Claude cost."
+      s.api_key_from_env ? "Using the ANTHROPIC_API_KEY set on this computer (an environment variable, maybe from another tool). Each preset shows what Claude cost."
+        : s.api_key ? "A key is set. Each preset shows what Claude cost."
         : "Claude builds and tweaks presets with your own key, from console.anthropic.com. Songs, sets, editing, imports and the pedal all work without one.",
       `<button type="button" class="ghost" data-open="settings-dialog" data-section="claude" data-title="Claude">Add a key</button>`),
     step(!!s.hx_edit, "HX Edit",
       s.hx_edit ? `Found at ${esc(s.hx_edit)}.`
         : "Install HX Edit from Line 6 (line6.com/software). The app reads the pedal's model list from it and never copies it."),
-    step(false, "The pedal",
-      "Plug the HX Stomp XL in with a USB cable that carries data (some charging cables don't, and an old one can make sending fail). If sending fails, More > Report a problem > Test the pedal checks the link."),
+    step(s.pedal?.connected, "The pedal",
+      s.pedal?.connected ? `Connected: ${esc(s.pedal.description)}.`
+        : "Plug the HX Stomp XL in with a USB cable that carries data (some charging cables don't, and an old one can make sending fail), and quit HX Edit: only one app can hold the pedal at a time."
+          + (s.pedal?.error ? ` The app says: ${esc(s.pedal.error)}` : "")),
   ].join("");
   return s;
 }

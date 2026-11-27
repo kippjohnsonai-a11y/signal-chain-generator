@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import sys
 from pathlib import Path
 
 import pytest
@@ -81,6 +82,7 @@ def test_storing_a_key_drops_the_cached_client(monkeypatch: pytest.MonkeyPatch) 
     assert llm._OPENAI_CLIENT is None
 
 
+@pytest.mark.skipif(sys.platform == "win32", reason="Windows has no POSIX mode bits; the file is in the user's own profile")
 def test_the_key_file_is_not_readable_by_anyone_else() -> None:
     llm.store_openai_api_key("sk-secret")
 
