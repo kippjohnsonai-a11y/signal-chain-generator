@@ -686,9 +686,12 @@ def _apply_chain(run: EditSession, preset: dict, symbols: Any, report: EditRepor
     # donor can starve the tone's amp of budget. Swap every wanted slot to a
     # near-free placeholder first, then place the tone's blocks most important
     # first (amp, cab, drives...), so anything that cannot fit is an extra.
+    # A donor block the pedal wouldn't delete (code -307 on Windows, Nov 27)
+    # would hold its DSP through the whole placement and starve the tone, so
+    # it gets the placeholder too; it is deleted again once the chain is in.
     placeholder = symbols.resolve(PLACEHOLDER_MODEL, stereo=False)
     if placeholder is not None:
-        for index in sorted(wanted):
+        for index in sorted({*wanted, *stuck}):
             run.renew_if_needed()
             try:
                 BlockEditor(run.session).swap_model(index, placeholder.index)
