@@ -1736,7 +1736,8 @@ def create_app(library: Library | None = None, caller_factory: Any = None) -> Fa
         stamp = VERSION["commit"]
         html = (STATIC / "index.html").read_text()
         for asset in ("/static/relay.js", "/static/app.js", "/static/closeup.js",
-                      "/static/desk.js", "/static/style.css"):
+                      "/static/desk.js", "/static/stage.js", "/static/help.js",
+                      "/static/style.css"):
             html = html.replace(f'"{asset}"', f'"{asset}?v={stamp}"')
         return HTMLResponse(html, headers={"Cache-Control": "no-cache"})
 
