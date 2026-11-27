@@ -224,6 +224,8 @@ def test_an_old_block_the_pedal_would_not_clear_is_tried_again_after_the_chain(r
     editor.apply_tone({"data": {}}, _Symbols(), slot=5)
     assert deletes == [7, 8, 7]
     assert state.deleted == [8, 7]
+    # Until then it holds a near-free placeholder, not its own DSP.
+    assert (7, 999) in _swaps[:4]
 
 
 def test_leftover_blocks_are_reported():
