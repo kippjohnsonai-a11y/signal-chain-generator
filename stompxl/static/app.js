@@ -145,6 +145,8 @@ document.addEventListener("click", async (e) => {
       const head = $("#song-panes");
       if (head.getBoundingClientRect().top < 0) head.scrollIntoView({ block: "start" });
     } else if (e.target.closest("#more-relay")) $("#relay-btn").click();
+    else if (e.target.closest("#more-remote")) toast(`${REMOTE_NOTE} Plug the pedal into the computer running the app; sends go through its USB cable.`);
+    else if (e.target.closest("#more-homescreen")) toast("In Safari, tap the Share button, then Add to Home Screen. The app then opens full screen like any other app. If you paired this phone on home Wi-Fi, pair the Home Screen app once more: it keeps its own sign-in.");
     else if (e.target.closest("#new-set")) {
       if (await newFolder()) { await loadState(); }
     } else if (e.target.closest("#sets-list button")) await setsClick(e.target.closest("#sets-list button"));
@@ -322,6 +324,14 @@ async function setsClick(t) {
   }
 }
 
+// iPhone and iPad (iPadOS reports itself as a Mac with a touch screen).
+const IOS = /iPhone|iPad|iPod/.test(navigator.userAgent)
+  || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+const STANDALONE = navigator.standalone === true || window.matchMedia("(display-mode: standalone)").matches;
+const REMOTE_NOTE = IOS
+  ? "iPhones and iPads can't connect to the pedal themselves, so this one works as a remote for the computer."
+  : "This browser can't connect to the pedal itself, so it works as a remote for the computer.";
+
 function renderMore() {
   if (!$("#more-view")) return;
   $("#more-guitars").textContent = state.guitars.map((g) => g.name).join(", ") || "Add your guitars";
@@ -333,6 +343,8 @@ function renderMore() {
   const relay = typeof PedalRelay !== "undefined" ? PedalRelay.status() : { supported: false };
   $("#more-relay").hidden = !relay.supported;
   $("#more-relay").firstChild.textContent = relay.active ? "Stop using pedal on this device" : "Use pedal on this device";
+  $("#more-remote").hidden = relay.supported;
+  $("#more-homescreen").hidden = !(IOS && !STANDALONE);
 }
 
 // Keep the screen on while a song is open, so the phone doesn't dim and lock
@@ -1893,7 +1905,7 @@ $("#lan-pair").addEventListener("click", async () => {
     const p = await api("/api/lan/pair", { method: "POST" });
     $("#lan-qr").innerHTML = p.qr_svg;
     $("#lan-qr").hidden = false;
-    $("#lan-code").innerHTML = `Scan this with the phone's camera within ${Math.round(p.expires_in / 60)} minutes, or open <strong>${esc(p.url)}</strong> on it. The code works once.`;
+    $("#lan-code").innerHTML = `Scan this with the phone's camera within ${Math.round(p.expires_in / 60)} minutes, or open <strong>${esc(p.url)}</strong> on it, or type the code <strong>${esc(p.code)}</strong> on the phone's pairing page. The code works once.`;
   } catch (err) { toast(err.message, true); }
 });
 $("#lan-devices").addEventListener("click", async (e) => {
@@ -1922,7 +1934,8 @@ async function renderSetup() {
         : "Install HX Edit from Line 6 (line6.com/software). The app reads the pedal's model list from it and never copies it."),
     step(s.pedal?.connected, "The pedal",
       s.pedal?.connected ? `Connected: ${esc(s.pedal.description)}.`
-        : `Plug the ${esc(pedalName())} in with a USB cable that carries data (some charging cables don't, and an old one can make sending fail), and quit HX Edit: only one app can hold the pedal at a time.`
+        : ((typeof PedalRelay !== "undefined" && PedalRelay.status().supported) ? "" : `${REMOTE_NOTE} `)
+          + `Plug the ${esc(pedalName())} into the computer running the app with a USB cable that carries data (some charging cables don't, and an old one can make sending fail), and quit HX Edit: only one app can hold the pedal at a time.`
           + (s.pedal?.error ? ` The app says: ${esc(s.pedal.error)}` : "")),
   ].join("");
   return s;
@@ -2585,11 +2598,15 @@ async function refreshPedal() {
     if (s.connected) {
       const here = s.where ? (relay.active ? ` · on this ${s.where}` : ` · on a ${s.where}`) : "";
       pill.querySelector(".pill-text").textContent = s.description + here + (s.verified ? "" : " (untested model)");
-      pill.title = s.where ? `Plugged into ${relay.active ? "this" : "a"} ${s.where}; the app reaches it through this page` : "Plugged into the Mac running the app";
+      pill.title = s.where ? `Plugged into ${relay.active ? "this" : "a"} ${s.where}; the app reaches it through this page` : "Plugged into the computer running the app";
       pill.className = "pill " + (s.verified ? "ok" : "warn");
     } else {
       pill.querySelector(".pill-text").textContent = s.error ? "Pedal: USB unavailable" : "Pedal: not connected";
-      pill.title = s.error || `Connect the ${pedalName()} over USB, switch it on and quit HX Edit (only one app can use the pedal at a time)`;
+      // A phone or tablet that can't reach USB from the browser (every iPhone
+      // and iPad) is a remote: the pedal goes into the computer.
+      pill.title = s.error || (relay.supported
+        ? `Connect the ${pedalName()} over USB, switch it on and quit HX Edit (only one app can use the pedal at a time)`
+        : `Plug the ${pedalName()} into the computer running the app, switch it on and quit HX Edit there. ${REMOTE_NOTE}`);
       pill.className = "pill";
     }
   } catch (_) { pill.querySelector(".pill-text").textContent = "Pedal: ?"; }

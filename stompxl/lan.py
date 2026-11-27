@@ -153,10 +153,16 @@ def new_code() -> str:
     return code
 
 
+def normalize_code(code: str) -> str:
+    """A code as typed on a phone: any case, spaces, with or without the dash."""
+    raw = "".join(ch for ch in (code or "").upper() if ch.isalnum())
+    return f"{raw[:4]}-{raw[4:]}" if len(raw) == 8 else (code or "").strip().upper()
+
+
 def redeem(code: str, name: str) -> str | None:
     """Swap a pairing code for a new device token; None if it's wrong or used."""
     global _bad
-    code = code.strip().upper()
+    code = normalize_code(code)
     with _lock:
         until = _codes.pop(code, None)
         if until is None or until < time.time():
