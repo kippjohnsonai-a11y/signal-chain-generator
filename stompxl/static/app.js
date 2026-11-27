@@ -9,6 +9,8 @@ const CAT_COLORS = {
 };
 
 let state = null;
+// The AI the owner picked in Settings: Claude, ChatGPT or Gemini.
+const aiName = () => state?.settings?.ai_name || "Claude";
 let current = { songId: null, versionId: null, snapshot: 0, version: null };
 // Library browsing: the tags picked in the sidebar (a song shows when one of
 // its versions has all of them), folders folded shut (remembered per
@@ -385,6 +387,7 @@ async function loadState() {
   }
   renderPickChips();
   $("#pref-guitar").innerHTML = `<option value="">All guitars</option>` + state.guitars.map((g) => `<option value="${g.id}">${esc(g.name)} only</option>`).join("");
+  for (const el of document.querySelectorAll(".ai-name")) el.textContent = aiName();
   $("#effort-select").innerHTML = state.settings.efforts.map((e) => `<option>${e}</option>`).join("");
   $("#exp-select").innerHTML = Object.entries(state.settings.exp_pedals)
     .map(([k, label]) => `<option value="${k}">${esc(label)}</option>`).join("");
@@ -401,7 +404,7 @@ async function loadState() {
   maybeOpenSetup();
   if (noKey && !loadState.toldNoKey) {
     loadState.toldNoKey = true;
-    toast("No Anthropic API key yet. Songs, sets, editing and the pedal all work; add a key in Settings to build presets with Claude.");
+    toast(`No ${aiName()} API key yet. Songs, sets, editing and the pedal all work; add a key in More > AI to build presets with ${aiName()}.`);
   }
   $("#no-key-hint").hidden = !noKey;
 }
@@ -572,7 +575,7 @@ function gearNotesCard(v) {
   if (!hits.length) return "";
   return `<div class="card"><h3>Your gear notes in this preset</h3><ul>${hits.map((n) =>
     `<li><b>${n.kind === "category" ? "Every " + esc(n.name) + " block" : esc(n.name)}:</b> ${esc(n.text)}</li>`).join("")}</ul>
-    <p class="hint">Claude follows these when it builds or tweaks a preset that uses this gear. Change them in My tone.</p></div>`;
+    <p class="hint">${aiName()} follows these when it builds or tweaks a preset that uses this gear. Change them in My tone.</p></div>`;
 }
 
 function renderStarters() {
@@ -670,7 +673,7 @@ async function runJob(title, start) {
     job = { status: "error", error: err.message };
   }
   rememberJob(null);
-  if (job.status === "done" && job.cost_usd != null) toast(`Done. Claude cost about ${costText(job.cost_usd)}.`);
+  if (job.status === "done" && job.cost_usd != null) toast(`Done. ${aiName()} cost about ${costText(job.cost_usd)}.`);
   if (job.status === "error") {
     runJob.lastError = job;
     toast(job.error, true);
@@ -773,7 +776,7 @@ function renderSongHead(song) {
     const on = v && v.guitar_id === g.id;
     return target
       ? `<button class="guitar-chip${on ? " on" : ""}" data-version="${target.id}" title="${esc(g.name)}: ${esc(target.label || "v" + target.id)}">${esc(g.name)}</button>`
-      : `<button class="guitar-chip add" data-remake-for="${g.id}" title="Remake this version for the ${esc(g.name)} (Claude, about a minute)">+ ${esc(g.name)}</button>`;
+      : `<button class="guitar-chip add" data-remake-for="${g.id}" title="Remake this version for the ${esc(g.name)} (${aiName()}, about a minute)">+ ${esc(g.name)}</button>`;
   }).join("") : "";
 }
 
@@ -952,7 +955,7 @@ function renderVersion() {
               <a href="/api/versions/${v.id}/hlx" class="menu-item">Download .hlx</a>
               <button id="duplicate-btn" class="menu-item" title="An exact copy under a new name, no AI">Duplicate</button>
               <button id="other-guitar-btn" class="menu-item" title="Same signal chain, with the settings re-dialled for another of your guitars"${state.guitars.length < 2 ? " disabled" : ""}>Remake for another guitar</button>
-              <button id="fork-btn" class="menu-item" title="Re-dial for a different guitar, rig or toggles with Claude">Fork…</button>
+              <button id="fork-btn" class="menu-item" title="Re-dial for a different guitar, rig or toggles with ${aiName()}">Fork…</button>
               <button id="rename-btn" class="menu-item">Rename</button>
               <button id="delete-version-btn" class="menu-item danger">Delete this version</button>
               <hr>
@@ -979,8 +982,8 @@ function renderVersion() {
     </div>
 
     <div class="card" data-pane="tweak">
-      <h3>Tweak it with Claude</h3>
-      <p class="hint">Say what you'd like to change in your own words, as you would to a bandmate. Claude makes a new version and lists every value it changed; this version is kept, so you can always go back.</p>
+      <h3>Tweak it with ${aiName()}</h3>
+      <p class="hint">Say what you'd like to change in your own words, as you would to a bandmate. ${aiName()} makes a new version and lists every value it changed; this version is kept, so you can always go back.</p>
       <form id="refine-form">
         <textarea name="feedback" required placeholder="e.g. too muddy on the Les Paul · the solo needs to jump out more · less reverb in the verse"></textarea>
         <div class="row" style="align-items:center">
@@ -995,8 +998,8 @@ function renderVersion() {
 
     ${b.origin ? `<div class="card" data-pane="notes">
       <h3>Song plan</h3>
-      <p class="hint">${b.origin === "import" ? "Imported" : "Started blank"}: no song plan yet. Claude can research the song and write one (original gear, sections, pickup and knob tips). Your preset isn't changed.</p>
-      <button id="plan-btn">Have Claude write the plan</button>
+      <p class="hint">${b.origin === "import" ? "Imported" : "Started blank"}: no song plan yet. ${aiName()} can research the song and write one (original gear, sections, pickup and knob tips). Your preset isn't changed.</p>
+      <button id="plan-btn">Have ${aiName()} write the plan</button>
     </div>` : `<details class="card fold" data-pane="notes">
       <summary><h3>Song plan</h3><span class="hint">sections, pickups, playing tips</span></summary>
       <p><b>Original gear:</b> ${esc(b.reference_gear)}</p>
@@ -1660,8 +1663,8 @@ document.addEventListener("click", async (e) => {
       $("#fork-title").textContent = other ? "Remake for another guitar" : "Fork this version";
       $("#fork-submit").textContent = other ? "Remake" : "Fork";
       $("#fork-intro").textContent = other
-        ? "Same blocks in the same order, same NAM capture and footswitches. Claude re-dials gain, EQ, levels and the snapshots for the guitar you pick."
-        : "Start a new branch from this version with a different guitar, rig, or toggles. Claude re-dials the preset from where it stands.";
+        ? `Same blocks in the same order, same NAM capture and footswitches. ${aiName()} re-dials gain, EQ, levels and the snapshots for the guitar you pick.`
+        : `Start a new branch from this version with a different guitar, rig, or toggles. ${aiName()} re-dials the preset from where it stands.`;
       updateRoom(f);
       syncKeepChain(f);
       $("#fork-dialog").showModal();
@@ -1705,32 +1708,59 @@ function fillSlots(names) {
     `<option value="${s}" ${s === def ? "selected" : ""}>${slotLabel(s)} (#${s})${names[s] ? " - " + esc(names[s]) : ""}</option>`).join("");
 }
 
-// The model list comes live from Anthropic's Models API, so new models show up on their own.
-async function fillModels(saved) {
+// The chosen provider's details from /api/state (label, key site, whether a key is set...).
+const providerInfo = (name) => (state.settings.ai_providers || {})[name || state.settings.ai_provider || "anthropic"] || {};
+
+// The model list comes live from the provider's API, so new models show up on their own.
+let modelsAsked = 0;
+async function fillModels(provider) {
   const select = $("#model-select");
+  const info = providerInfo(provider);
   const old = new Set(["claude-opus-5"]);  // the old prefilled default means "newest Opus"
-  const chosen = !saved || old.has(saved) ? "latest-opus" : saved;
-  const render = (models, latest, note) => {
-    const opts = [`<option value="latest-opus">Newest Opus (now ${esc(latest)}) - recommended</option>`]
-      .concat(models.map((m) => `<option value="${esc(m.id)}">${esc(m.name)} (${esc(m.id)})</option>`));
-    if (chosen !== "latest-opus" && !models.some((m) => m.id === chosen)) opts.push(`<option value="${esc(chosen)}">${esc(chosen)}</option>`);
+  const saved = info.model;
+  const chosen = provider === "anthropic" && (!saved || old.has(saved)) ? "latest-opus" : saved;
+  $("#model-label").textContent = `${info.ai || "AI"} model`;
+  const render = (models, recommended, note) => {
+    const opts = [`<option value="${esc(recommended.id)}">${esc(recommended.name)} - recommended</option>`]
+      .concat(models.map((m) => `<option value="${esc(m.id)}">${esc(m.name)}${m.name === m.id ? "" : ` (${esc(m.id)})`}</option>`));
+    if (chosen && chosen !== recommended.id && !models.some((m) => m.id === chosen)) opts.push(`<option value="${esc(chosen)}">${esc(chosen)}</option>`);
     select.innerHTML = opts.join("");
-    select.value = chosen;
+    select.value = chosen || recommended.id;
     $("#model-status").textContent = note;
   };
-  render([], "...", "Loading the model list from Anthropic...");
+  const asked = ++modelsAsked;
+  render([], { id: chosen || "", name: chosen || "..." }, `Loading the model list from ${info.company || "the provider"}...`);
   try {
-    const res = await api("/api/claude-models");
-    render(res.models, res.latest_opus, res.error
-      ? "Couldn't load the model list (add your API key and reopen Settings). Newest Opus still works."
-      : "\"Newest Opus\" moves to each new Opus by itself.");
-  } catch (err) { render([], "claude-opus-5-5", err.message); }
+    const res = await api(`/api/ai-models?provider=${encodeURIComponent(provider)}`);
+    if (asked !== modelsAsked) return;  // switched provider meanwhile
+    render(res.models, res.recommended, res.error
+      ? `Couldn't load the model list (check your ${info.company} key, then reopen Settings). The recommended model still works.`
+      : provider === "anthropic" ? "\"Newest Opus\" moves to each new Opus by itself." : "The recommended model is a good default.");
+  } catch (err) { if (asked === modelsAsked) render([], { id: chosen || "", name: chosen || "" }, err.message); }
 }
+
+// Show the key box, help and status for the provider picked in the dropdown.
+function showProvider(provider) {
+  const info = providerInfo(provider);
+  for (const el of document.querySelectorAll("[data-key-for]")) el.style.display = el.dataset.keyFor === provider ? "" : "none";
+  const account = state.account || {};
+  $("#key-help").innerHTML = account.guest ? ""
+    : `Get a key at <a href="${esc(info.key_url)}" target="_blank" rel="noopener">${esc(info.key_site)}</a> and paste it here. It's stored only on this computer. You pay ${esc(info.company)} directly: usually a few cents to a few tens of cents per preset, and each preset shows what it cost. Everything except building and tweaking with the AI works without a key.`;
+  $("#key-status").textContent = account.guest
+    ? `Signed in as ${account.email}. AI jobs left today: ${account.claude_left}.`
+    : (info.key_from_env ? `Using the ${info.env} set on this computer. A key added here is used instead, just for this app; the variable is left alone.`
+      : info.has_key ? `A ${info.company} key is set.` : `No ${info.company} key yet: add one to build presets with ${info.ai}.`)
+      + ` AI this month: about ${costText(state.settings.claude_cost_month || 0)} (list prices; your provider's billing page has the real bill).`;
+  fillModels(provider);
+}
+$("#provider-select").addEventListener("change", (e) => showProvider(e.target.value));
 
 function fillSettings() {
   const f = $("#settings-form");
-  f.elements.anthropic_api_key.value = "";
-  fillModels(state.settings.claude_model);
+  for (const name of ["anthropic_api_key", "openai_api_key", "gemini_api_key"]) f.elements[name].value = "";
+  $("#provider-select").innerHTML = Object.entries(state.settings.ai_providers || {})
+    .map(([k, p]) => `<option value="${k}">${esc(p.label)}${p.has_key ? "" : " - no key yet"}</option>`).join("");
+  f.elements.ai_provider.value = state.settings.ai_provider || "anthropic";
   f.elements.claude_effort.value = state.settings.claude_effort;
   f.elements.exp_pedal.value = state.settings.exp_pedal;
   f.elements.gate_mode.value = state.settings.gate_mode;
@@ -1742,10 +1772,9 @@ function fillSettings() {
     : "NAM on computer: run `stompxl learn-nam-usb` once so presets come ready to play.";
   const account = state.account || {};
   $("#key-field").hidden = !!account.guest;
-  $("#key-status").textContent = account.guest
-    ? `Signed in as ${account.email}. Claude jobs left today: ${account.claude_left}.`
-    : (state.settings.has_api_key ? "An API key is set." : "No API key yet: add one to generate presets.")
-      + ` Claude this month: about ${costText(state.settings.claude_cost_month || 0)} (list prices; your Anthropic console has the real bill).`;
+  $("#provider-field").hidden = !!account.guest;
+  f.elements.ai_provider.disabled = !!account.guest;
+  showProvider(f.elements.ai_provider.value);
   $("#diag-settings").hidden = !!account.guest;
   f.elements.diagnostics_token.value = "";
   $("#diag-token-status").textContent = state.settings.diagnostics_token
@@ -1884,11 +1913,11 @@ async function renderSetup() {
     step(s.guitars > 0, "Add your guitar",
       s.guitars ? `${s.guitars} guitar${s.guitars === 1 ? "" : "s"} added.` : "Presets are dialled for a guitar and its pickups.",
       `<button type="button" class="ghost" data-open="guitars-dialog">Guitars</button>`),
-    step(s.api_key, "Anthropic API key (optional)",
-      s.api_key_from_env ? "Using the ANTHROPIC_API_KEY set on this computer (an environment variable, maybe from another tool). To use a different key just for this app, add it here; the variable is left alone."
-        : s.api_key ? "A key is set. Each preset shows what Claude cost."
-        : "Claude builds and tweaks presets with your own key, from console.anthropic.com. Songs, sets, editing, imports and the pedal all work without one.",
-      `<button type="button" class="ghost" data-open="settings-dialog" data-section="claude" data-title="Claude">Add a key</button>`),
+    step(s.api_key, "AI key (optional)",
+      s.api_key_from_env ? `Using the ${esc(providerInfo().env)} set on this computer (an environment variable, maybe from another tool). To use a different key just for this app, add it here; the variable is left alone.`
+        : s.api_key ? `A ${aiName()} key is set. Each preset shows what it cost.`
+        : "Claude, ChatGPT or Gemini builds and tweaks presets with your own key. Pick one and paste its key. Songs, sets, editing, imports and the pedal all work without one.",
+      `<button type="button" class="ghost" data-open="settings-dialog" data-section="claude" data-title="AI">Add a key</button>`),
     step(!!s.hx_edit, "HX Edit",
       s.hx_edit ? `Found at ${esc(s.hx_edit)}.`
         : "Install HX Edit from Line 6 (line6.com/software). The app reads the pedal's model list from it and never copies it."),
@@ -1948,7 +1977,7 @@ async function explainBlock(index, refresh = false, io = null) {
   dialog.dataset.block = index ?? "";
   dialog.dataset.io = io || "";
   $("#explain-title").textContent = io ? `${blk.title} block` : `${blk.model}${blk.based_on ? " · " + blk.based_on : ""}`;
-  $("#explain-body").innerHTML = `<p class="hint">Asking Claude about the ${esc(blk.model)} and its settings for this song... this takes about half a minute the first time; after that it's saved.</p>`;
+  $("#explain-body").innerHTML = `<p class="hint">Asking ${aiName()} about the ${esc(blk.model)} and its settings for this song... this takes about half a minute the first time; after that it's saved.</p>`;
   if (!dialog.open) dialog.showModal();
   const edits = editing ? [...editing.committed, ...pendingEdits()] : [];
   try {
@@ -2442,8 +2471,12 @@ $("#settings-form").addEventListener("submit", async (e) => {
   e.preventDefault();
   if ($("#nam-row-name").value.trim()) namRowSave(); // a capture typed but not added yet
   const d = formData(e.target);
-  const body = { claude_model: d.claude_model, claude_effort: d.claude_effort, exp_pedal: d.exp_pedal, gate_mode: d.gate_mode, nam_captures: parseCaptures(d.nam_captures) };
-  if (d.anthropic_api_key) body.anthropic_api_key = d.anthropic_api_key;
+  const body = { claude_effort: d.claude_effort, exp_pedal: d.exp_pedal, gate_mode: d.gate_mode, nam_captures: parseCaptures(d.nam_captures) };
+  const provider = d.ai_provider || state.settings.ai_provider || "anthropic";
+  if (!(state.account || {}).guest && d.ai_provider) body.ai_provider = d.ai_provider;
+  const modelSetting = { anthropic: "claude_model", openai: "openai_model", gemini: "gemini_model" }[provider];
+  if (d.ai_model) body[modelSetting] = d.ai_model;
+  for (const name of ["anthropic_api_key", "openai_api_key", "gemini_api_key"]) if (d[name]) body[name] = d[name];
   if (d.diagnostics_token) body.diagnostics_token = d.diagnostics_token;
   await api("/api/settings", { method: "PUT", body });
   $("#settings-dialog").close();

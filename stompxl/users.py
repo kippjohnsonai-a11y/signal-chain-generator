@@ -107,8 +107,8 @@ def charge_claude_job() -> None:
         used = claude_used_today()
         if used >= limit:
             raise OverAllowance(
-                f"You've used today's {limit} Claude jobs. They reset at midnight; "
-                "anything that doesn't need Claude still works.")
+                f"You've used today's {limit} AI jobs. They reset at midnight; "
+                "anything that doesn't need the AI still works.")
         today = time.strftime("%Y-%m-%d")
         path = _usage_path()
         tmp = path.with_suffix(".tmp")

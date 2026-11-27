@@ -16,7 +16,7 @@
   <div class="top-actions">
     <button id="pedal-pill" class="pill" type="button" title="Pedal status"><span class="dot"></span><span class="pill-text">Pedal: checking...</span></button>
     <button class="pill help-pill" data-help type="button" title="How to use this app" aria-label="How to use this app">?<span class="help-pill-text"> Help</span></button>
-    <button class="pill desk-pill" data-desk-go type="button" title="Quick pedal control: tune whatever preset is on the pedal, jump between its presets, ask Claude">Pedal</button>
+    <button class="pill desk-pill" data-desk-go type="button" title="Quick pedal control: tune whatever preset is on the pedal, jump between its presets, ask the AI">Pedal</button>
     <button id="menu-btn" class="ghost menu-btn" type="button" aria-label="Menu" aria-expanded="false">&#9776;</button>
     <div class="top-menu" id="top-menu">
       <button id="relay-btn" class="ghost" hidden title="Use the pedal plugged into this phone or computer, over USB">Use pedal here</button>
@@ -49,12 +49,12 @@
       <button class="ghost back-btn" data-back type="button">&larr; Songs</button>
       <h1>New song</h1>
       <div class="new-tabs">
-        <button type="button" data-new-tab="generate" class="active">Generate with Claude</button>
+        <button type="button" data-new-tab="generate" class="active">Generate with <span class="ai-name">Claude</span></button>
         <button type="button" data-new-tab="blank">Start blank</button>
         <button type="button" data-new-tab="import">Import a preset</button>
       </div>
       <form id="generate-form" data-tab="generate">
-        <p class="hint lead">Type a song and Claude builds a whole preset for it: amp, effects and 4 snapshots (one per part of the song), set up for your guitar. It takes about a minute and needs an Anthropic API key.</p>
+        <p class="hint lead">Type a song and <span class="ai-name">Claude</span> builds a whole preset for it: amp, effects and 4 snapshots (one per part of the song), set up for your guitar. It takes about a minute and needs an AI key (Claude, ChatGPT or Gemini).</p>
         <label>Song
           <input name="song" required placeholder="Enter Sandman by Metallica" autocomplete="off">
         </label>
@@ -91,8 +91,8 @@
           </ul>
         </details>
         <div class="n1-go"><button class="primary" type="submit">Generate preset</button></div>
-        <p class="hint" id="no-key-hint" hidden>Building a preset needs an Anthropic API key: add one in More &gt; Settings. A blank song, imports and the pedal work without one.</p>
-        <details class="n1-help"><summary>How this works</summary><p class="hint">Your toggle choices are remembered. With the wah off, the expression pedal becomes a volume pedal. Every preset gets 4 snapshots, one per section of the song. Claude also says whether the song would benefit from the wah, expression pedal, looper, or Poly Capo. On a NAM rig, "Full-rig captures only" sticks to captures that include their cab, which saves the cab block's DSP. The box above the instructions shows how much DSP your rig and toggles leave and which other pedals still fit. The Stage boost is an off drive before the amp that Stage mode's Gain boost switches on.</p></details>
+        <p class="hint" id="no-key-hint" hidden>Building a preset needs an AI key (Claude, ChatGPT or Gemini): add one in More &gt; AI. A blank song, imports and the pedal work without one.</p>
+        <details class="n1-help"><summary>How this works</summary><p class="hint">Your toggle choices are remembered. With the wah off, the expression pedal becomes a volume pedal. Every preset gets 4 snapshots, one per section of the song. <span class="ai-name">Claude</span> also says whether the song would benefit from the wah, expression pedal, looper, or Poly Capo. On a NAM rig, "Full-rig captures only" sticks to captures that include their cab, which saves the cab block's DSP. The box above the instructions shows how much DSP your rig and toggles leave and which other pedals still fit. The Stage boost is an off drive before the amp that Stage mode's Gain boost switches on.</p></details>
       </form>
 
       <form id="blank-form" data-tab="blank" hidden>
@@ -115,7 +115,7 @@
           <label>Tempo (BPM) <input name="tempo" type="number" min="30" max="300" value="120"></label>
         </div>
         <button class="primary" type="submit">Create blank song</button>
-        <p class="hint">No AI: you get a preset with 4 snapshots (Intro, Verse, Chorus, Solo) and your usual noise gate. Build it with Edit values. The amp and cab apply to the headphones/FRFR rig; other rigs start empty. You can have Claude write a song plan later if you like.</p>
+        <p class="hint">No AI: you get a preset with 4 snapshots (Intro, Verse, Chorus, Solo) and your usual noise gate. Build it with Edit values. The amp and cab apply to the headphones/FRFR rig; other rigs start empty. You can have <span class="ai-name">Claude</span> write a song plan later if you like.</p>
       </form>
 
       <form id="import-form" data-tab="import" hidden>
@@ -226,14 +226,14 @@
       </div>
       <div class="more-group">
         <h3>My tone</h3>
-        <button class="more-item" data-open="prefs-dialog" data-tone="tweaks">Tweaks for every song<span>What Claude follows on every preset</span></button>
+        <button class="more-item" data-open="prefs-dialog" data-tone="tweaks">Tweaks for every song<span>What <span class="ai-name">Claude</span> follows on every preset</span></button>
         <button class="more-item" data-open="prefs-dialog" data-tone="gear">Gear notes<span>Default handling for a capture, model or kind of block</span></button>
         <button class="more-item" data-open="prefs-dialog" data-tone="picks">Quick picks<span>One-tap moves in a pedal's close-up</span></button>
         <button class="more-item" data-open="prefs-dialog" data-tone="starters">Suggested tweaks<span>Starting points for playing rock in a band</span></button>
       </div>
       <div class="more-group">
         <h3>App</h3>
-        <button class="more-item" data-open="settings-dialog" data-section="claude" data-title="Claude">Claude<span>API key, model and thinking effort</span></button>
+        <button class="more-item" data-open="settings-dialog" data-section="claude" data-title="AI">AI<span>Claude, ChatGPT or Gemini: key, model and thinking effort</span></button>
         <button class="more-item" type="button" id="more-setup">Set up this computer<span>API key, guitar, HX Edit and the pedal</span></button>
         <button class="more-item" type="button" id="more-lan">Phones on this Wi-Fi<span>Pair a phone to use the app at home</span></button>
         <button class="more-item" data-open="library-dialog">Back up or move your library<span>Export everything to one file, or bring a library in</span></button>
@@ -288,7 +288,7 @@
 <dialog id="prefs-dialog" class="wide page">
   <button type="button" class="page-back" data-close-dialog>&lsaquo; Back</button>
   <h2>My tone</h2>
-  <p class="hint">Claude follows these on every new preset, tweak and fork. Pause one to try a song without it.</p>
+  <p class="hint"><span class="ai-name">Claude</span> follows these on every new preset, tweak and fork. Pause one to try a song without it.</p>
   <div class="new-tabs">
     <button type="button" data-tone-tab="tweaks" class="active">Tweaks for every song <b id="tweak-count"></b></button>
     <button type="button" data-tone-tab="gear">Gear notes <b id="gear-count"></b></button>
@@ -312,7 +312,7 @@
   </div>
 
   <div data-tone-pane="gear" hidden>
-    <p class="hint">Default handling for one NAM capture, one effect or amp model, or every block of a kind. Claude applies a note only when that gear is in the preset, e.g. "always follow this capture with a Parametric EQ cutting 400 Hz".</p>
+    <p class="hint">Default handling for one NAM capture, one effect or amp model, or every block of a kind. <span class="ai-name">Claude</span> applies a note only when that gear is in the preset, e.g. "always follow this capture with a Parametric EQ cutting 400 Hz".</p>
     <ul id="gear-list" class="list"></ul>
     <form id="gear-form" class="stack">
       <h3 id="gear-form-title">Add a gear note</h3>
@@ -372,10 +372,16 @@
   <h2 id="settings-title">Settings</h2>
   <form id="settings-form" class="stack">
     <div data-set="claude" class="stack">
-    <label id="key-field">Anthropic API key <input name="anthropic_api_key" type="password" placeholder="sk-ant-... (leave blank to keep current)" autocomplete="off"></label>
+    <label id="provider-field">AI to use <select name="ai_provider" id="provider-select"></select></label>
+    <p class="hint">Pick the company whose AI builds and tweaks your presets. Claude is what the app was built and tested with; ChatGPT and Gemini work too. You can switch any time; your songs stay the same.</p>
+    <div id="key-field" class="stack">
+      <label data-key-for="anthropic">Anthropic API key <input name="anthropic_api_key" type="password" placeholder="sk-ant-... (leave blank to keep current)" autocomplete="off"></label>
+      <label data-key-for="openai">OpenAI API key <input name="openai_api_key" type="password" placeholder="sk-... (leave blank to keep current)" autocomplete="off"></label>
+      <label data-key-for="gemini">Google Gemini API key <input name="gemini_api_key" type="password" placeholder="AIza... (leave blank to keep current)" autocomplete="off"></label>
+    </div>
     <p class="hint" id="key-status"></p>
-    <p class="hint">Get a key at console.anthropic.com (Settings &gt; API Keys) and paste it here. It's stored only on this computer. You pay Anthropic directly: usually a few cents to a few tens of cents per preset, and each preset shows what it cost. Everything except building and tweaking with Claude works without a key.</p>
-    <label>Claude model <select name="claude_model" id="model-select"></select></label>
+    <p class="hint" id="key-help"></p>
+    <label><span id="model-label">Model</span> <select name="ai_model" id="model-select"></select></label>
     <p class="hint" id="model-status"></p>
     <label>Thinking effort <select name="claude_effort" id="effort-select"></select></label>
     <p class="hint">Higher effort gives more careful tones but takes longer and costs more. Medium is a good default.</p>
@@ -477,7 +483,7 @@
     <ol class="help-steps">
       <li><b>Your HX Stomp XL and a USB cable.</b> Use a good, newer cable that carries data. Some cables only charge, and an old cable can let the app read the pedal but make sending presets fail.</li>
       <li><b>HX Edit installed.</b> HX Edit is Line 6's free editor (line6.com/software). The app reads the pedal's list of amps and effects from it, so it must be installed. <b>Close HX Edit while you use this app</b>: only one program can talk to the pedal at a time.</li>
-      <li><b>An Anthropic API key (optional).</b> Claude, the AI that builds and tweaks presets, runs on your own key from console.anthropic.com. You pay Anthropic directly, usually a few cents to a few tens of cents per preset. Without a key you can still import presets, build them by hand, edit, make set lists and send to the pedal. Add the key in More &gt; Claude.</li>
+      <li><b>An AI key (optional).</b> The AI that builds and tweaks presets runs on your own key: Claude (from console.anthropic.com), ChatGPT (platform.openai.com) or Gemini (aistudio.google.com). You pay that company directly, usually a few cents to a few tens of cents per preset. Without a key you can still import presets, build them by hand, edit, make set lists and send to the pedal. Pick the AI and add the key in More &gt; AI.</li>
       <li><b>Back up your pedal once.</b> In HX Edit choose File &gt; Backup before your first send. The app also backs up each slot before it overwrites it, but your own backup is the safest.</li>
     </ol>
     <p class="hint">More &gt; Set up this computer checks these for you.</p>
@@ -492,7 +498,7 @@
     <h3>2. Make your first song</h3>
     <p>Tap <b>+ New song</b>. There are three ways to start:</p>
     <ul>
-      <li><b>Generate with Claude</b>: type the song and artist (say "Back in Black by AC/DC"), pick your guitar and output rig, and tap <b>Generate preset</b>. It takes about a minute. If you're not sure which rig, pick <b>Headphones / FRFR / PA</b>.</li>
+      <li><b>Generate with <span class="ai-name">Claude</span></b>: type the song and artist (say "Back in Black by AC/DC"), pick your guitar and output rig, and tap <b>Generate preset</b>. It takes about a minute. If you're not sure which rig, pick <b>Headphones / FRFR / PA</b>.</li>
       <li><b>Start blank</b>: an empty preset you build yourself. No key needed.</li>
       <li><b>Import a preset</b>: bring in one that's already on your pedal or saved as an .hlx file. No key needed, and nothing on the pedal changes.</li>
     </ul>
@@ -503,13 +509,13 @@
     <h3>3. Read a song</h3>
     <p>A song opens on its <b>Play</b> tab. The row of buttons across the top (Intro, Verse, Chorus, Solo) are the <b>4 snapshots</b>: one sound for each part of the song. Tap one to see how the preset changes for that part. On the pedal you switch snapshots with footswitches FS1 and FS4.</p>
     <p>Below them is the <b>signal chain</b>: each box is one <b>block</b> (an effect, the amp or the speaker cabinet), in the order your guitar's sound goes through them. A green lamp means the block is on in this snapshot, a dark lamp means off. "FS 2" on a block means footswitch 2 turns it on and off. <b>Explain</b> tells you what a block does and why it's there; <b>Tune</b> opens it big with sliders.</p>
-    <p>The other tabs: <b>Tweak</b> to change the sound with Claude, <b>Notes</b> for your own notes and the song plan (which pickup and knob settings to use in each part), and <b>Versions</b> for every earlier version of this song.</p>
+    <p>The other tabs: <b>Tweak</b> to change the sound with <span class="ai-name">Claude</span>, <b>Notes</b> for your own notes and the song plan (which pickup and knob settings to use in each part), and <b>Versions</b> for every earlier version of this song.</p>
   </section>
 
   <section id="help-tweak" class="help-section">
     <h3>4. Change the sound</h3>
     <ul>
-      <li><b>In plain words</b>: on the <b>Tweak</b> tab, describe what you want ("too muddy", "solo needs to jump out more", "less reverb in the verse") and tap <b>Apply tweak</b>. Claude makes a new version and lists every value it changed.</li>
+      <li><b>In plain words</b>: on the <b>Tweak</b> tab, describe what you want ("too muddy", "solo needs to jump out more", "less reverb in the verse") and tap <b>Apply tweak</b>. <span class="ai-name">Claude</span> makes a new version and lists every value it changed.</li>
       <li><b>By hand</b>: tap <b>Tune</b> on a block, or <b>Edit chain</b> to add, move, swap or remove blocks. A bar at the bottom counts your changes. <b>Save</b> keeps them as a new version; <b>Discard</b> throws them away.</li>
       <li><b>Hear it as you go</b>: turn on <b>Live</b> in that bottom bar and every change plays on the pedal straight away. Save writes it to the pedal; Discard puts the pedal back how it was.</li>
     </ul>
@@ -535,13 +541,13 @@
 
   <section id="help-pedal" class="help-section">
     <h3>7. The Pedal tab (quick pedal control)</h3>
-    <p>The <b>Pedal</b> tab works on whatever preset is on the pedal right now, even one you didn't make in this app. Step through the pedal's presets with ◀ ▶, tap <b>Go live</b> to tweak it with one-tap quick picks, or ask Claude for a change. <b>Save as a song</b> keeps it in your library.</p>
+    <p>The <b>Pedal</b> tab works on whatever preset is on the pedal right now, even one you didn't make in this app. Step through the pedal's presets with ◀ ▶, tap <b>Go live</b> to tweak it with one-tap quick picks, or ask <span class="ai-name">Claude</span> for a change. <b>Save as a song</b> keeps it in your library.</p>
   </section>
 
   <section id="help-mine" class="help-section">
     <h3>8. Make it yours</h3>
     <ul>
-      <li><b>My tone &gt; Tweaks for every song</b>: things Claude should always do, like "cut some mud around 400 Hz" or "I play at bedroom volume". Tick "Remember this" on a tweak to save it here.</li>
+      <li><b>My tone &gt; Tweaks for every song</b>: things <span class="ai-name">Claude</span> should always do, like "cut some mud around 400 Hz" or "I play at bedroom volume". Tick "Remember this" on a tweak to save it here.</li>
       <li><b>Gear notes</b>: how to handle one amp, effect or NAM capture whenever it's used.</li>
       <li><b>Quick picks</b>: your own one-tap moves, like "Gig volume", shown when you tune a block.</li>
       <li><b>Suggested</b>: ready-made starting points you can add with one tap.</li>
@@ -569,9 +575,9 @@
       <dt>Setup says HX Edit isn't found</dt>
       <dd>Install HX Edit from line6.com/software, even if you never open it. Then More &gt; Set up this computer &gt; Check again.</dd>
       <dt>Generate preset doesn't work</dt>
-      <dd>Building with Claude needs an Anthropic API key with credit on it. Add one in More &gt; Claude. Everything else works without one.</dd>
+      <dd>Building with the AI needs an API key with credit on it, from Anthropic, OpenAI or Google. Add one in More &gt; AI. Everything else works without one.</dd>
       <dt>It sounds too loud, quiet, boomy or harsh</dt>
-      <dd>Tell Claude on the song's Tweak tab, or use Stage mode's quick fixes. Presets sound different on headphones, a small speaker and a PA, so set the output rig to match what you play through.</dd>
+      <dd>Tell <span class="ai-name">Claude</span> on the song's Tweak tab, or use Stage mode's quick fixes. Presets sound different on headphones, a small speaker and a PA, so set the output rig to match what you play through.</dd>
       <dt>Still stuck?</dt>
       <dd><b>More &gt; Report a problem</b> gathers what just happened so you can send it to the app's GitHub page. Personal details are blanked out first, and you can read it before sending.</dd>
     </dl>
@@ -601,7 +607,7 @@
       <dt>Live</dt><dd>Changes play on the pedal as you make them, before you save.</dd>
       <dt>.hlx file</dt><dd>A preset saved as a file, the kind HX Edit imports and exports.</dd>
       <dt>NAM and IR</dt><dd>NAM (Neural Amp Modeler) captures are recordings of real amps you can use instead of the pedal's amp models. An IR is a recording of a speaker cabinet. Both are optional and for advanced users.</dd>
-      <dt>API key</dt><dd>A password-like code from Anthropic that lets this app use Claude, billed to your account.</dd>
+      <dt>API key</dt><dd>A password-like code from Anthropic, OpenAI or Google that lets this app use their AI, billed to your account.</dd>
     </dl>
   </section>
   <form method="dialog"><button class="ghost">Close</button></form>
@@ -762,11 +768,11 @@
 <!-- Fork -->
 <dialog id="fork-dialog">
   <h2 id="fork-title">Fork this version</h2>
-  <p class="hint" id="fork-intro">Start a new branch from this version with a different guitar, rig, or toggles. Claude re-dials the preset from where it stands.</p>
+  <p class="hint" id="fork-intro">Start a new branch from this version with a different guitar, rig, or toggles. <span class="ai-name">Claude</span> re-dials the preset from where it stands.</p>
   <form id="fork-form" class="stack">
     <label>Guitar <select name="guitar_id" id="fork-guitar"></select></label>
-    <label class="toggle" title="Every block stays where it is, with the same NAM capture, footswitches and gate. Claude only re-dials the values and snapshots for the guitar you pick."><input type="checkbox" name="keep_chain"> Keep the same signal chain, just re-dial the settings</label>
-    <p class="hint" id="keep-chain-hint" hidden>Keeping the chain means the same rig and toggles. Change one and Claude may rebuild the chain instead.</p>
+    <label class="toggle" title="Every block stays where it is, with the same NAM capture, footswitches and gate. the AI only re-dials the values and snapshots for the guitar you pick."><input type="checkbox" name="keep_chain"> Keep the same signal chain, just re-dial the settings</label>
+    <p class="hint" id="keep-chain-hint" hidden>Keeping the chain means the same rig and toggles. Change one and <span class="ai-name">Claude</span> may rebuild the chain instead.</p>
     <label>Output rig <select name="rig_id" id="fork-rig"></select></label>
     <fieldset class="toggles">
       <label class="toggle"><input type="checkbox" name="wah"> Wah</label>

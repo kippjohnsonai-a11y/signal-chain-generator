@@ -40,9 +40,9 @@ uv run stompxl                     # installs everything the first time, then op
 
 Then in the app (new to it? **? Help** at the top, or **More → How to use this app**, walks through everything step by step, with fixes for common pedal problems and a glossary):
 
-1. **Settings** → paste an [Anthropic API key](https://console.anthropic.com/settings/keys). It's saved only on your Mac (`~/Library/Application Support/Signal Chain Generator/settings.json`, owner-read-only; installs from before the rename keep using `StompXL Tone Studio/`). Without a saved key, the app uses `ANTHROPIC_API_KEY` from your shell; a saved key wins over it, so other tools keep theirs.
+1. **More → AI** → pick **Claude**, **ChatGPT** or **Gemini** and paste that company's API key ([Anthropic](https://console.anthropic.com/settings/keys), [OpenAI](https://platform.openai.com/api-keys) or [Google AI Studio](https://aistudio.google.com/apikey)). Keys are saved only on your Mac (`~/Library/Application Support/Signal Chain Generator/settings.json`, owner-read-only; installs from before the rename keep using `StompXL Tone Studio/`). Without a saved key, the app uses `ANTHROPIC_API_KEY`, `OPENAI_API_KEY` or `GEMINI_API_KEY` from your shell; a saved key wins over it, so other tools keep theirs.
 2. **Guitars** → add your guitars and their pickups (say, a Strat with SSS single coils).
-3. Type a song, pick guitar + rig + toggles, **Generate**. It takes about a minute: four Claude calls (song research → blocks → parameters → snapshots).
+3. Type a song, pick guitar + rig + toggles, **Generate**. It takes about a minute: four AI calls (song research → blocks → parameters → snapshots).
 
 **For pushing to the pedal:** HX Edit must be **installed** (the app reads its model table) but **closed** while sending, since only one program can use the USB connection at a time. Connect the Stomp XL over USB.
 
@@ -50,7 +50,7 @@ Then in the app (new to it? **? Help** at the top, or **More → How to use this
 
 ## Cost
 
-Uses the newest Claude Opus (now `claude-opus-5-5`) with adaptive thinking at **medium** effort by default. Settings has a model dropdown filled live from Anthropic's Models API, so new models appear on their own; "Newest Opus" moves to each new Opus automatically. A new preset is 4 calls and a tweak is 3; expect a few cents to low tens of cents per preset depending on effort.
+Claude is the default and what the app is tuned and tested with: the newest Claude Opus (now `claude-opus-5-5`) with adaptive thinking at **medium** effort. Settings has a model dropdown filled live from the provider's model list, so new models appear on their own; "Newest Opus" moves to each new Opus automatically. ChatGPT defaults to `gpt-5.6-sol` and Gemini to `gemini-pro-latest`; the thinking-effort setting carries over to both. A new preset is 4 calls and a tweak is 3; expect a few cents to low tens of cents per preset depending on model and effort. The cost shown on each preset uses list prices; your provider's billing page has the real bill.
 
 ## How it's built
 

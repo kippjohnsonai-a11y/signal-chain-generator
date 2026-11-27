@@ -44,10 +44,13 @@ cd stompxl
 3. Open HX Edit, then **File → Backup** to make a full backup of the pedal.
 4. **Quit HX Edit.** Only one program can talk to the pedal at a time.
 
-## 5. Get an Anthropic API key
+## 5. Get an AI key
 
-1. Go to [console.anthropic.com](https://console.anthropic.com), sign in, and add some credit under **Billing** ($5-10 goes a long way).
-2. **Settings → API Keys → Create Key**. Copy the key (it starts with `sk-ant-`).
+The app can use Claude (Anthropic), ChatGPT (OpenAI) or Gemini (Google). Pick one; Claude is what it's tuned and tested with.
+
+- **Claude:** go to [console.anthropic.com](https://console.anthropic.com), sign in, add some credit under **Billing** ($5-10 goes a long way), then **Settings → API Keys → Create Key**. The key starts with `sk-ant-`.
+- **ChatGPT:** go to [platform.openai.com/api-keys](https://platform.openai.com/api-keys), add credit under **Billing**, and create a key. It starts with `sk-`.
+- **Gemini:** go to [aistudio.google.com/apikey](https://aistudio.google.com/apikey) and create a key. It starts with `AIza`. Turn on billing for heavier use.
 
 ## 6. Start the app
 
@@ -58,7 +61,7 @@ uv run stompxl
 The first run downloads Python 3.13 and the app's libraries (a minute or two), then opens **http://127.0.0.1:8765** in your browser.
 
 In the app:
-1. **Settings**: paste the API key and save.
+1. **More → AI**: pick Claude, ChatGPT or Gemini, paste its API key and save.
 2. **Guitars**: add your guitars and their pickups (for example a Stratocaster with SSS single coils).
 3. Type a song and **Generate**.
 
@@ -139,4 +142,4 @@ The first click takes a minute or two while it installs Python for this user.
 | Top bar says **Pedal: not connected** | Quit HX Edit, check the USB cable, and try another port (not a hub). |
 | "HX Edit's symbol table was not found" | Install HX Edit (step 4); keep it installed but closed. |
 | "address already in use" | Another copy is already running, maybe in another user's account. Use the launcher (it picks a port per user), or start with `uv run stompxl --port 8767`. |
-| "Claude rejected the API key" | Paste the key again in Settings, and check you have credit in the Anthropic console. |
+| "... rejected the API key" | Paste the key again in More → AI, and check you have credit with that company (Anthropic, OpenAI or Google). |

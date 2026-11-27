@@ -96,6 +96,29 @@ def test_settings_store_key_without_echoing_it(client):
     assert "sk-ant-test" not in str(settings)
 
 
+def test_settings_pick_a_provider_with_its_own_key_and_model(client, monkeypatch):
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    client.put("/api/settings", json={"ai_provider": "gemini", "gemini_api_key": " AIza-test ",
+                                      "gemini_model": "gemini-3.8-flash"})
+    settings = client.get("/api/state").json()["settings"]
+    assert settings["ai_provider"] == "gemini" and settings["ai_name"] == "Gemini"
+    assert settings["has_api_key"] is True
+    view = settings["ai_providers"]
+    assert view["gemini"]["has_key"] and view["gemini"]["model"] == "gemini-3.8-flash"
+    assert not view["anthropic"]["has_key"] and not view["openai"]["has_key"]
+    assert "AIza-test" not in str(settings)
+    assert config.api_key("gemini") == "AIza-test"
+    assert client.get("/api/setup").json()["ai_provider"] == "gemini"
+    # Switching to a provider without a key: the features say so.
+    client.put("/api/settings", json={"ai_provider": "openai"})
+    assert client.get("/api/state").json()["settings"]["has_api_key"] is False
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-from-shell")
+    view = client.get("/api/state").json()["settings"]["ai_providers"]["openai"]
+    assert view["has_key"] and view["key_from_env"]
+    assert client.put("/api/settings", json={"ai_provider": "other"}).status_code == 400
+    assert client.get("/api/ai-models?provider=other").status_code == 400
+
+
 def test_index_is_served(client):
     assert "Signal Chain Generator" in client.get("/").text
     assert client.get("/static/app.js").status_code == 200
@@ -175,15 +198,15 @@ def test_first_run_setup_says_what_is_missing_until_done(tmp_path, monkeypatch):
     client = TestClient(create_app(lib))
     no_pedal = {"connected": False, "description": "", "error": "no libusb"}
     assert client.get("/api/setup").json() == {
-        "guest": False, "api_key": False, "api_key_from_env": False, "pedal": no_pedal,
-        "guitars": 0, "hx_edit": None, "done": False}
+        "guest": False, "api_key": False, "api_key_from_env": False, "ai_provider": "anthropic",
+        "pedal": no_pedal, "guitars": 0, "hx_edit": None, "done": False}
     client.post("/api/guitars", json={"name": "Strat", "pickups": "SSS"})
     monkeypatch.setattr("stompxl.helixgen.device.hxedit.find_hx_edit", lambda: tmp_path / "HX Edit.app")
     config.write_settings({"anthropic_api_key": "sk-ant-x"})
     monkeypatch.setattr(pedal, "status", lambda: pedal.DeviceStatus(connected=True, description="HX Stomp XL"))
     client.post("/api/setup/done")
     assert client.get("/api/setup").json() == {
-        "guest": False, "api_key": True, "api_key_from_env": False,
+        "guest": False, "api_key": True, "api_key_from_env": False, "ai_provider": "anthropic",
         "pedal": {"connected": True, "description": "HX Stomp XL", "error": ""},
         "guitars": 1, "hx_edit": str(tmp_path / "HX Edit.app"), "done": True}
     # A key saved in Settings wins over one in the environment.

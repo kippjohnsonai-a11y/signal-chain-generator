@@ -30,7 +30,7 @@ FORMAT = 1
 
 #: Never written to an export, never taken from an import.
 SECRET_SETTINGS = frozenset({
-    "anthropic_api_key", "diagnostics_token", "tone3000_key", "tone3000_tokens",
+    "anthropic_api_key", "openai_api_key", "gemini_api_key", "diagnostics_token", "tone3000_key", "tone3000_tokens",
 })
 #: About the computer that made the export (paths, first-run setup): not for another one.
 LOCAL_SETTINGS = frozenset({"nam_folder", "setup_done", "lan_enabled", "lan_port"})
