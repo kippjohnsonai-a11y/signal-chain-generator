@@ -2,7 +2,7 @@
 
 Type a song, pick one of your guitars, get a dialled-in **Line 6 HX Stomp XL** preset, and send it straight to the pedal.
 
-It runs on your own Mac, which keeps your library and talks to the pedal. Your phone, tablet and other computers open it in a browser. Nothing goes through anyone else's server: your songs stay on your Mac, and Claude is called with your own API key. The first release supports **macOS** as the computer that runs it; Windows is planned once the pedal connection has been tested there.
+It runs on your own Mac or Windows PC, which keeps your library and talks to the pedal. Your phone, tablet and other computers open it in a browser. Nothing goes through anyone else's server: your songs stay on your computer, and Claude is called with your own API key.
 
 *Formerly "StompXL Tone Studio". Not affiliated with Line 6; see [Legal](#legal).*
 
@@ -20,6 +20,12 @@ It runs on your own Mac, which keeps your library and talks to the pedal. Your p
 - **Built for rehearsal.** Star songs to pin them under **Favorites**, with your last few songs under **Recent**. A folder is a set list: **Order** puts its songs in play order, and a song from it shows **◀ Prev · 3 of 14 · Next ▶**. One button per guitar in the song header opens that guitar's version, no Claude call (or "+ Strat" remakes it). Tap any pedal to tune it; the **Live** switch, Discard and Save sit in a bar at the bottom. A values-only save is named "Rehearsal Nov 15" and starred, so the song opens on it next time. On a phone, the song list and a song are separate screens, and every song has its own address, so Back, refresh and bookmarks work.
 - **Push to the pedal** over USB into the slot you choose; the slot's old preset is backed up first. Or download the `.hlx` and drag it into HX Edit.
 - **Best-practices library** in [`stompxl/knowledge/`](stompxl/knowledge): platform limits, chain order, gain staging, pickups, rigs, snapshots, wah/expression/looper, and how to interpret feedback. Every prompt includes it; edit or add a `.md` file to change how presets are built.
+
+## Install
+
+- **Mac:** download `Signal-Chain-Generator-VERSION.dmg` from the [latest release](https://github.com/kippjohnsonai-a11y/signal-chain-generator/releases/latest), drag the app to Applications, and open it.
+- **Windows:** download `Signal-Chain-Generator-VERSION-Setup.exe` from the [latest release](https://github.com/kippjohnsonai-a11y/signal-chain-generator/releases/latest) and run it. No administrator rights needed. The installer isn't code-signed yet, so Windows may say "Windows protected your PC": click **More info → Run anyway**. Then open **Signal Chain Generator** from the Start menu; it opens in your browser, with no window of its own. Your library is in `%APPDATA%\Signal Chain Generator` (with `app.log` if something goes wrong). The pedal works over USB with Line 6's normal driver; close HX Edit while sending.
+- **Either, from a terminal:** with [uv](https://docs.astral.sh/uv/), `uvx signal-chain-generator`.
 
 ## Setup on a Mac (Apple Silicon)
 

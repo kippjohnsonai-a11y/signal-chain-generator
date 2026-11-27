@@ -66,3 +66,44 @@ jobs:
           plutil -lint "$app/Contents/Info.plist"
           "$app/Contents/MacOS/uv" tool run --python 3.13 --from signal-chain-generator==0.1.0 \
               signal-chain-generator --help
+
+  # Build the Windows installer, install it silently, and check what it set up.
+  windows-installer:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Build
+        shell: pwsh
+        run: ./scripts/build-windows-installer.ps1 0.1.0
+      - name: Install and check
+        shell: pwsh
+        run: |
+          $dir = Join-Path $env:RUNNER_TEMP "scg"
+          $setup = "dist\windows\Signal-Chain-Generator-0.1.0-Setup.exe"
+          Start-Process -Wait -FilePath $setup -ArgumentList "/VERYSILENT", "/SUPPRESSMSGBOXES", "/CURRENTUSER", "/DIR=$dir"
+          foreach ($f in "uv.exe", "uvw.exe", "app.ico") { if (-not (Test-Path "$dir\$f")) { throw "$f was not installed" } }
+          $lnk = Join-Path ([Environment]::GetFolderPath("Programs")) "Signal Chain Generator\Signal Chain Generator.lnk"
+          if (-not (Test-Path $lnk)) { throw "Start menu shortcut missing" }
+          $shortcut = (New-Object -ComObject WScript.Shell).CreateShortcut($lnk)
+          Write-Output "$($shortcut.TargetPath) $($shortcut.Arguments)"
+          & "$dir\uv.exe" tool run --python 3.13 --from signal-chain-generator==0.1.0 signal-chain-generator --help
+          if ($LASTEXITCODE -ne 0) { throw "the release didn't run" }
+      - name: Launch twice from source
+        shell: pwsh
+        run: |
+          pipx install uv==0.11.32
+          $env:STOMPXL_DATA_DIR = Join-Path $env:RUNNER_TEMP "scg-data"
+          Start-Process -FilePath uv -ArgumentList "run", "--locked", "signal-chain-generator", "--launch", "--port", "8799"
+          $up = $false
+          foreach ($i in 1..120) {
+            try { Invoke-RestMethod http://127.0.0.1:8799/api/version | Out-Null; $up = $true; break } catch { Start-Sleep 1 }
+          }
+          if (-not $up) { Get-Content "$env:STOMPXL_DATA_DIR\app.log" -ErrorAction SilentlyContinue; throw "the server didn't start" }
+          # A second click finds it running and returns at once.
+          uv run --locked signal-chain-generator --launch --port 8799
+          if ($LASTEXITCODE -ne 0) { throw "second launch failed" }
+          if (-not (Test-Path "$env:STOMPXL_DATA_DIR\server.pid")) { throw "no pid file" }
+          Get-Content "$env:STOMPXL_DATA_DIR\app.log"
