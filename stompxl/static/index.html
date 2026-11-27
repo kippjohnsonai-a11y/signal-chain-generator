@@ -2,7 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Signal Chain">
 <title>Signal Chain Generator</title>
 <link rel="stylesheet" href="/static/style.css">
 <link rel="manifest" href="/static/manifest.webmanifest">
@@ -223,6 +226,7 @@
         <button class="more-item" data-open="settings-dialog" data-section="nam" data-title="NAM captures">NAM captures<span id="more-nam"></span></button>
         <button class="more-item" data-open="settings-dialog" data-section="pedal" data-title="Expression and gate">Expression and gate<span>Your expression pedal setup and input noise gate</span></button>
         <button class="more-item" id="more-relay" hidden>Use pedal on this device<span>The pedal plugged into this phone or computer</span></button>
+        <button class="more-item" id="more-remote" type="button" hidden>This device is a remote<span>The pedal plugs into the computer running the app</span></button>
       </div>
       <div class="more-group">
         <h3>My tone</h3>
@@ -235,6 +239,7 @@
         <h3>App</h3>
         <button class="more-item" data-open="settings-dialog" data-section="claude" data-title="Claude">Claude<span>API key, model and thinking effort</span></button>
         <button class="more-item" type="button" id="more-setup">Set up this computer<span>API key, guitar, HX Edit and the pedal</span></button>
+        <button class="more-item" type="button" id="more-homescreen" hidden>Add to Home Screen<span>Open the app full screen, like any other app</span></button>
         <button class="more-item" type="button" id="more-lan">Phones on this Wi-Fi<span>Pair a phone to use the app at home</span></button>
         <button class="more-item" data-open="library-dialog">Back up or move your library<span>Export everything to one file, or bring a library in</span></button>
         <button class="more-item" data-open="settings-dialog" data-section="diag" data-title="Diagnostics" id="more-diag">Diagnostics<span>GitHub token and Send diagnostics</span></button>
@@ -551,8 +556,9 @@
   <section id="help-devices" class="help-section">
     <h3>Phones, other devices and backups</h3>
     <ul>
-      <li><b>Phones on this Wi-Fi</b> (More): use the app from your phone or tablet at home. Turn it on, tap <b>Pair a phone</b> and scan the code with the phone's camera. The pedal stays plugged into this computer.</li>
-      <li><b>Use pedal on this device</b> (More, in Chrome): use a pedal plugged into the phone or laptop you're holding, for example an Android phone with a USB adapter. iPhones and iPads can't connect to the pedal.</li>
+      <li><b>Phones on this Wi-Fi</b> (More): use the app from your phone or tablet at home. Turn it on, tap <b>Pair a phone</b> and scan the code with the phone's camera, or type the code on the phone. The pedal stays plugged into this computer.</li>
+      <li><b>iPhone and iPad</b>: they work as a remote. Plug the pedal into the computer running the app, and everything else (making songs, sending, Stage mode) works from the iPhone or iPad. Apple doesn't let any app reach the pedal's editing connection over the iPhone's own cable. To open the app full screen, tap Share, then <b>Add to Home Screen</b>; then pair that Home Screen app once, since it keeps its own sign-in.</li>
+      <li><b>Use pedal on this device</b> (More, in Chrome): use a pedal plugged into the Android phone or laptop you're holding, for example an Android phone with a USB adapter.</li>
       <li><b>Back up or move your library</b> (More): save every song, set and setting to one file, or move them to another computer.</li>
     </ul>
   </section>

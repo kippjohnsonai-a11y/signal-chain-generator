@@ -99,3 +99,31 @@ def test_too_many_wrong_codes_cancel_the_waiting_ones(app):
 def test_device_names():
     assert lan.device_name("Mozilla/5.0 (Linux; Android 15; Pixel 9)") == "Android phone"
     assert lan.device_name("") == "Phone"
+
+
+def test_an_unpaired_browser_gets_a_code_box(app):
+    """A Home Screen app on iPhone has its own cookies, so it pairs by typing the code."""
+    pc = computer(app)
+    pc.put("/api/lan", json={"enabled": True})
+    browser = phone(app, headers={"Accept": "text/html,application/xhtml+xml"})
+    page = browser.get("/")
+    assert page.status_code == 401 and page.headers["content-type"].startswith("text/html")
+    assert 'action="/pair"' in page.text and "Home Screen" in page.text
+    # A script still gets plain text.
+    assert phone(app).get("/").headers["content-type"].startswith("text/plain")
+
+    bad = browser.get("/pair?code=nope")
+    assert bad.status_code == 403 and 'name="code"' in bad.text
+
+    code = pc.post("/api/lan/pair").json()["code"]
+    typed = f" {code.replace('-', '').lower()[:4]} {code.replace('-', '').lower()[4:]} "
+    res = browser.get("/pair", params={"code": typed})
+    assert res.status_code == 303
+    assert browser.get("/api/state").status_code == 200
+
+
+def test_normalize_code():
+    assert lan.normalize_code("abcd efgh") == "ABCD-EFGH"
+    assert lan.normalize_code("ABCD-EFGH") == "ABCD-EFGH"
+    assert lan.normalize_code(" abcdefgh ") == "ABCD-EFGH"
+    assert lan.normalize_code("short") == "SHORT"

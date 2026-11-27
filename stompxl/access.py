@@ -44,6 +44,7 @@ owner.
 
 from __future__ import annotations
 
+import html
 import logging
 import os
 from functools import lru_cache
@@ -220,8 +221,9 @@ async def _via_lan(app: Any, scope: dict[str, Any], receive: Any, send: Any) -> 
         token = await to_thread.run_sync(
             lan.redeem, code, lan.device_name(headers.get("user-agent", ""))) if code else None
         if token is None:
-            await _refuse(scope, send, 403, "That pairing code is wrong, used or expired. "
-                                            "Make a new one on the computer: More > Phones on this Wi-Fi.")
+            await _refuse_phone(scope, send, headers, 403,
+                                "That pairing code is wrong, used or expired. Make a new one on "
+                                "the computer: More > Phones on this Wi-Fi > Pair a phone.")
             return
         cookie = (f"{lan.COOKIE}={token}; Max-Age={lan.COOKIE_SECONDS}; Path=/; "
                   "HttpOnly; SameSite=Lax")
@@ -232,12 +234,59 @@ async def _via_lan(app: Any, scope: dict[str, Any], receive: Any, send: Any) -> 
         return
     device = await to_thread.run_sync(lan.device_for, _cookie(headers, lan.COOKIE))
     if device is None:
-        await _refuse(scope, send, 401, f"This phone isn't paired with {APP_NAME}. On the computer, "
-                                        "open More > Phones on this Wi-Fi > Pair a phone, then "
-                                        "scan the code.")
+        await _refuse_phone(scope, send, headers, 401,
+                            f"This phone isn't paired with {APP_NAME} yet. On the computer, open "
+                            "More > Phones on this Wi-Fi > Pair a phone, then scan the code with "
+                            "this phone's camera or type it below.")
         return
     with users.acting_as(users.OWNER), lan.via_phone():
         await app(scope, receive, send)
+
+
+_PAIR_PAGE = """<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#111316">
+<title>Pair this phone</title>
+<style>
+body {{ margin: 0; padding: 24px 16px; background: #111316; color: #e8e8ea;
+  font: 16px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }}
+main {{ max-width: 420px; margin: 0 auto; }}
+h1 {{ font-size: 1.35rem; margin: 0 0 .75rem; }}
+p {{ color: #b9bcc4; }}
+form {{ display: flex; gap: .5rem; margin: 1.25rem 0; }}
+input {{ flex: 1; min-width: 0; min-height: 48px; padding: 0 .8rem; border-radius: 10px; border: 1px solid #3a3e47;
+  background: #1b1e23; color: #fff; font-size: 1.2rem; letter-spacing: .12em; text-transform: uppercase; }}
+button {{ min-height: 48px; padding: 0 1.1rem; border: 0; border-radius: 10px; background: #e0a526; color: #111;
+  font-weight: 600; font-size: 1rem; }}
+.small {{ font-size: .88rem; }}
+</style></head>
+<body><main>
+<h1>Pair this phone</h1>
+<p>{message}</p>
+<form action="/pair" method="get">
+  <input name="code" placeholder="ABCD-EFGH" autocomplete="one-time-code" autocapitalize="characters"
+    autocorrect="off" spellcheck="false" aria-label="Pairing code" required>
+  <button>Pair</button>
+</form>
+<p class="small">Added the app to your Home Screen on an iPhone or iPad? The Home Screen app keeps its own
+sign-in, separate from Safari, so pair it here once by typing a fresh code.</p>
+</main></body></html>
+"""
+
+
+async def _refuse_phone(scope: dict[str, Any], send: Any, headers: dict[str, str],
+                        status: int, message: str) -> None:
+    """Refuse a request on the Wi-Fi port; a browser page gets a code box to pair with."""
+    if scope["type"] != "http" or "text/html" not in headers.get("accept", ""):
+        await _refuse(scope, send, status, message)
+        return
+    body = _PAIR_PAGE.format(message=html.escape(message)).encode()
+    await send({"type": "http.response.start", "status": status,
+                "headers": [(b"content-type", b"text/html; charset=utf-8"),
+                            (b"cache-control", b"no-store"),
+                            (b"content-length", str(len(body)).encode())]})
+    await send({"type": "http.response.body", "body": body})
 
 
 async def _refuse(scope: dict[str, Any], send: Any, status: int, message: str) -> None:
