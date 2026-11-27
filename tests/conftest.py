@@ -117,7 +117,8 @@ def _no_live_llm_calls(monkeypatch: pytest.MonkeyPatch) -> None:
     its environment, one of them passed by spending money. A default is not
     something the suite should be able to notice.
     """
-    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    for name in ("OPENAI_API_KEY", "GEMINI_API_KEY", "GOOGLE_API_KEY"):
+        monkeypatch.delenv(name, raising=False)
     monkeypatch.setattr("stompxl.helixgen.llm.openai_api_key", lambda: None)
 
     def _refuse(*_args: object, **_kwargs: object) -> None:

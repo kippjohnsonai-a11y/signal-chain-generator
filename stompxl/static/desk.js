@@ -189,7 +189,7 @@ function deskChatHtml() {
     : `<div class="desk-msg ai">${esc(m.text).replace(/\n/g, "<br>")}${(m.suggestions || []).map((s, si) => deskSuggestionHtml(s, mi, si)).join("")}</div>`).join("");
   const saved = Number(deskRecall(DESK_GUITAR_KEY));
   const guitars = state.guitars.map((g) => `<option value="${g.id}" ${g.id === saved ? "selected" : ""}>${esc(g.name)}</option>`).join("");
-  return `<div class="chain-head"><h3>Ask Claude</h3>
+  return `<div class="chain-head"><h3>Ask ${aiName()}</h3>
       <div class="actions">${state.guitars.length ? `<select id="desk-guitar" aria-label="Guitar" title="The guitar you're playing">${guitars}</select>` : ""}
       ${chat.length ? '<button class="small ghost" data-desk-newchat>New chat</button>' : ""}</div></div>
     <div class="desk-msgs" id="desk-msgs">${msgs || '<p class="hint">Ask about the preset on the pedal: “too much fizz on the high strings”, “how do I get more chug for the chorus?”, “why is it quieter than 1A?”. Claude answers and suggests changes you can tap to hear.</p>'}
@@ -348,7 +348,7 @@ async function deskAsk(text) {
     (desk.chats[slot] ||= []).push({ role: "assistant", text: res.reply || "(no answer)", suggestions: res.suggestions });
     logEvent(`pedal chat: ${res.suggestions.length} suggestion(s)${res.dropped ? `, ${res.dropped} change(s) dropped` : ""}`);
   } catch (err) {
-    (desk.chats[slot] ||= []).push({ role: "assistant", text: `Couldn't ask Claude: ${err.message}` });
+    (desk.chats[slot] ||= []).push({ role: "assistant", text: `Couldn't ask ${aiName()}: ${err.message}` });
   } finally {
     desk.asking = false;
     if (deskSlot() === slot) deskRenderChat();

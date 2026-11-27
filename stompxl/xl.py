@@ -181,7 +181,7 @@ DEFAULT_EXP_PEDAL = "single"
 #: lets Claude decide; "off" never gates.
 GATE_MODES = {
     "on": "On for every preset (tuned per song and guitar)",
-    "auto": "Claude decides per song",
+    "auto": "The AI decides per song",
     "off": "Off",
 }
 DEFAULT_GATE = "on"

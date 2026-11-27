@@ -183,9 +183,9 @@ def ask(view: dict[str, Any], snapshot: int, messages: list[dict[str, str]],
     try:
         answer = json.loads(text)
     except json.JSONDecodeError as exc:
-        raise LLMGenerationError(f"Claude's answer wasn't valid JSON: {exc}") from exc
+        raise LLMGenerationError(f"The AI's answer wasn't valid JSON: {exc}") from exc
     if not isinstance(answer, dict):
-        raise LLMGenerationError("Claude's answer had no reply")
+        raise LLMGenerationError("The AI's answer had no reply")
     suggestions = []
     dropped = 0
     for s in (answer.get("suggestions") or [])[:MAX_SUGGESTIONS]:

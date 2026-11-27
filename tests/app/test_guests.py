@@ -116,6 +116,15 @@ def test_guests_use_the_owners_key_but_cannot_change_it(app):
     assert config.get_setting("gate_mode") is None
 
 
+def test_guests_follow_the_owners_ai_provider(app):
+    config.write_settings({"ai_provider": "openai", "openai_api_key": "sk-owner"})
+    sam = tunnel(app, "sam@gmail.com")
+    sam.put("/api/settings", json={"ai_provider": "gemini", "openai_api_key": "sk-sam"})
+    settings = sam.get("/api/state").json()["settings"]
+    assert settings["ai_provider"] == "openai" and settings["has_api_key"] is True
+    assert config.get_setting("openai_api_key") == "sk-owner"
+
+
 def _job(client, job_id):
     for _ in range(200):
         job = client.get(f"/api/jobs/{job_id}").json()
@@ -139,7 +148,7 @@ def test_guests_get_a_daily_allowance_of_claude_jobs(app, monkeypatch):
     assert owner(app).get(f"/api/jobs/{first}").status_code == 404
 
     second = _job(sam, sam.post("/api/generate", json=body).json()["job_id"])
-    assert second["status"] == "error" and "today's 1 Claude jobs" in second["error"]
+    assert second["status"] == "error" and "today's 1 AI jobs" in second["error"]
     assert sam.get("/api/state").json()["account"]["claude_left"] == 0
 
     # The owner is never limited.

@@ -1,9 +1,10 @@
-"""What Claude costs: a rough dollar figure for each job and for the month.
+"""What the AI costs: a rough dollar figure for each job and for the month.
 
 Each call's token counts go to ``claude-costs.jsonl`` in the data folder of
-whoever made it. The prices are Anthropic's list prices per million tokens; a
-model this table doesn't know is priced like the newest Opus, so a figure is
-never left out. They are estimates: the Anthropic console has the real bill.
+whoever made it (the name is from when Claude was the only choice). The prices
+are each provider's list prices per million tokens; a model this table doesn't
+know is priced like its family's default, so a figure is never left out. They
+are estimates: the provider's own billing page has the real bill.
 """
 
 from __future__ import annotations
@@ -32,8 +33,26 @@ PRICES: dict[str, tuple[float, float]] = {
     "claude-sonnet-4": (3.0, 15.0),
     "claude-haiku-5": (0.10, 0.50),
     "claude-haiku-4": (1.0, 5.0),
+    # OpenAI (Nov 2026 list prices).
+    "gpt-5.6-sol": (5.0, 30.0),
+    "gpt-5.6-terra": (2.0, 12.0),
+    "gpt-5.6-luna": (0.20, 1.20),
+    # Google Gemini (paid tier; Flash is on introductory pricing to Dec 31 2026).
+    "gemini-flash-lite": (0.30, 2.50),
+    "gemini-flash": (1.5, 7.5),
+    "gemini-pro": (4.0, 24.0),
+    "gemini-3.5-flash-lite": (0.30, 2.50),
+    "gemini-3.5-flash": (0.75, 4.50),
+    "gemini-3.6-flash": (1.5, 7.5),
+    "gemini-3.7-flash": (1.5, 7.5),
+    "gemini-3.8-flash": (1.5, 7.5),
 }
 DEFAULT_PRICE = PRICES["claude-opus-5-5"]
+#: A model the table doesn't know, by its family: priced high rather than low.
+FAMILY_DEFAULTS: dict[str, tuple[float, float]] = {
+    "gpt-": PRICES["gpt-5.6-sol"],
+    "gemini-": PRICES["gemini-pro"],
+}
 #: Cache writes cost a quarter more than input; cache reads a tenth of it.
 CACHE_WRITE = 1.25
 CACHE_READ = 0.1
@@ -45,7 +64,10 @@ _meter: contextvars.ContextVar[list[float] | None] = contextvars.ContextVar("cla
 
 def price(model: str) -> tuple[float, float]:
     match = max((p for p in PRICES if model.startswith(p)), key=len, default=None)
-    return PRICES[match] if match else DEFAULT_PRICE
+    if match:
+        return PRICES[match]
+    family = max((p for p in FAMILY_DEFAULTS if model.startswith(p)), key=len, default=None)
+    return FAMILY_DEFAULTS[family] if family else DEFAULT_PRICE
 
 
 def _tokens(usage: Any, name: str) -> int:
@@ -78,7 +100,7 @@ def record(model: str, usage: Any) -> float:
             f.write(json.dumps(line) + "\n")
         return cost
     except Exception as exc:  # noqa: BLE001 - a cost note must never break a job
-        logger.warning("Couldn't record Claude cost: %s", exc)
+        logger.warning("Couldn't record AI cost: %s", exc)
         return 0.0
 
 

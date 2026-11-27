@@ -59,7 +59,7 @@ legend { color: var(--muted); font-size: .85rem; }
 label.toggle { display: flex; align-items: center; gap: .4rem; color: var(--text); margin: .25rem 0; }
 label.toggle input { width: auto; margin: 0; }
 label.toggle[hidden] { display: none; }
-#key-field[hidden] { display: none; }
+#key-field[hidden], #provider-field[hidden] { display: none; }
 label.toggle.live-toggle.on { color: var(--on); font-weight: 700; }
 .row { display: flex; gap: .75rem; flex-wrap: wrap; }
 .row > * { flex: 1 1 200px; }

@@ -36,6 +36,7 @@ from starlette.background import BackgroundTask
 
 from . import (
     APP_FULL_NAME,
+    ai,
     assistant,
     claude,
     config,
@@ -358,8 +359,13 @@ class LiveStopIn(BaseModel):
 
 
 class SettingsIn(BaseModel):
+    ai_provider: str | None = None
     anthropic_api_key: str | None = None
+    openai_api_key: str | None = None
+    gemini_api_key: str | None = None
     claude_model: str | None = None
+    openai_model: str | None = None
+    gemini_model: str | None = None
     claude_effort: str | None = None
     exp_pedal: str | None = None
     gate_mode: str | None = None
@@ -464,10 +470,14 @@ class Jobs:
         return job
 
 
+def _ai_name() -> str:
+    return ai.PROVIDERS[ai.provider()]["ai"]
+
+
 def create_app(library: Library | None = None, caller_factory: Any = None) -> FastAPI:
     lib: Any = Libraries(library)
     jobs = Jobs()
-    build_caller = caller_factory or (lambda: claude.build_caller())
+    build_caller = caller_factory or (lambda: ai.build_caller())
 
     def make_caller() -> Any:
         users.charge_claude_job()
@@ -551,7 +561,11 @@ def create_app(library: Library | None = None, caller_factory: Any = None) -> Fa
             "set_songs": lib.set_songs(),
             "tags": lib.tags(),
             "settings": {
-                "has_api_key": bool(config.anthropic_api_key()),
+                # The chosen provider's key: what every AI feature runs on.
+                "has_api_key": ai.has_key(),
+                "ai_provider": ai.provider(),
+                "ai_name": ai.PROVIDERS[ai.provider()]["ai"],
+                "ai_providers": ai.settings_view(),
                 "claude_cost_month": round(costs.month_total(), 2),
                 "claude_model": settings.get("claude_model") or claude.DEFAULT_MODEL,
                 "claude_effort": settings.get("claude_effort") or claude.DEFAULT_EFFORT,
@@ -585,12 +599,16 @@ def create_app(library: Library | None = None, caller_factory: Any = None) -> Fa
 
     @app.get("/api/claude-models")
     def claude_models(refresh: bool = False) -> dict[str, Any]:
-        """The models the API key can use, newest first, for the Settings dropdown."""
-        try:
-            models = claude.list_models(refresh=refresh)
-        except Exception as exc:  # noqa: BLE001 - no key yet, or no network: say so in the dropdown
-            return {"models": [], "latest_opus": claude.FALLBACK_MODEL, "error": str(exc)}
-        return {"models": models, "latest_opus": claude.latest_opus(models), "error": None}
+        """The models the Anthropic key can use, newest first (kept for older pages)."""
+        return ai.models("anthropic", refresh=refresh)
+
+    @app.get("/api/ai-models")
+    def ai_models(provider: str = "", refresh: bool = False) -> dict[str, Any]:
+        """A provider's models for the Settings dropdown, newest first, plus the recommended one."""
+        which = provider or ai.provider()
+        if which not in ai.PROVIDERS:
+            raise HTTPException(400, "Unknown AI provider")
+        return ai.models(which, refresh=refresh)
 
     @app.get("/api/dsp-room")
     def dsp_room(rig_id: int, wah: bool = False, expression: bool = False,
@@ -606,12 +624,16 @@ def create_app(library: Library | None = None, caller_factory: Any = None) -> Fa
         values = body.model_dump(exclude_unset=True)
         if users.is_guest():
             # Guests run on the owner's keys; they never see or replace them.
-            values.pop("anthropic_api_key", None)
+            for name in ("anthropic_api_key", "openai_api_key", "gemini_api_key", "ai_provider"):
+                values.pop(name, None)
             values.pop("tone3000_key", None)
             values.pop("diagnostics_token", None)
-        if "anthropic_api_key" in values:
-            values["anthropic_api_key"] = (values["anthropic_api_key"] or "").strip() or None
-            claude.forget_models()
+        if values.get("ai_provider") and values["ai_provider"] not in ai.PROVIDERS:
+            raise HTTPException(400, "Unknown AI provider")
+        for which, (setting, _env) in config.API_KEYS.items():
+            if setting in values:
+                values[setting] = (values[setting] or "").strip() or None
+                ai.forget_models(which)
         if "diagnostics_token" in values:
             values["diagnostics_token"] = (values["diagnostics_token"] or "").strip() or None
         if values.get("exp_pedal") and values["exp_pedal"] not in xl.EXP_PEDAL_SETUPS:
@@ -699,9 +721,10 @@ def create_app(library: Library | None = None, caller_factory: Any = None) -> Fa
             pedal_info = {"connected": s.connected, "description": s.description, "error": s.error}
         return {
             "guest": guest,
-            "api_key": bool(config.anthropic_api_key()),
+            "api_key": ai.has_key(),
             # Only from the environment when no key is saved in Settings.
-            "api_key_from_env": config.anthropic_api_key_source() == "env",
+            "api_key_from_env": config.api_key_source(ai.provider()) == "env",
+            "ai_provider": ai.provider(),
             "pedal": pedal_info,
             "guitars": len(lib.guitars()),
             "hx_edit": hx_edit,
@@ -939,7 +962,7 @@ def create_app(library: Library | None = None, caller_factory: Any = None) -> Fa
         setup = _setup(record["guitar_id"], record["rig_id"], Options(**_options(record)), "")
 
         def work(report: Any) -> dict[str, Any]:
-            report("Asking Claude about the song...")
+            report(f"Asking {_ai_name()} about the song...")
             brief = engine.brief_only(song["query"], setup, make_caller(), report)
             brief["preset_name"] = record["brief"].get("preset_name", brief.get("preset_name"))
             lib.set_brief(version_id, brief)
@@ -1130,7 +1153,7 @@ def create_app(library: Library | None = None, caller_factory: Any = None) -> Fa
         }
 
         def work(report: Any) -> dict[str, Any]:
-            report(f"Asking Claude about the {block['model']}...")
+            report(f"Asking {_ai_name()} about the {block['model']}...")
             result = explain.explain(block, shown["snapshots"], context, make_caller())
             lib.save_explanation(key, result)
             return {"explanation": result}
@@ -1740,7 +1763,7 @@ def create_app(library: Library | None = None, caller_factory: Any = None) -> Fa
         snapshot = body.snapshot if 0 <= body.snapshot < len(shown["snapshots"]) else 0
 
         def work(report: Any) -> dict[str, Any]:
-            report("Asking Claude...")
+            report(f"Asking {_ai_name()}...")
             return assistant.ask(shown, snapshot, messages, context, make_caller())
 
         return {"job_id": jobs.start(work)}

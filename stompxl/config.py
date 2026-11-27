@@ -1,7 +1,7 @@
 """Where the app keeps its data, and the handful of settings set once.
 
 Everything lives under one data directory: the SQLite library, device backups,
-and ``settings.json`` (which may hold the Anthropic API key, so it is written
+and ``settings.json`` (which may hold the AI provider's API keys, so it is written
 readable by the owner only).
 
 A guest signed in through Cloudflare (see :mod:`stompxl.users`) gets a data
@@ -99,21 +99,51 @@ def write_settings(values: dict[str, Any]) -> None:
     tmp.replace(path)
 
 
-def anthropic_api_key_source() -> str | None:
-    """Where the key comes from: "settings", "env", or None.
+#: Each AI provider's saved-key setting and the environment variables it falls back to.
+API_KEYS: dict[str, tuple[str, tuple[str, ...]]] = {
+    "anthropic": ("anthropic_api_key", ("ANTHROPIC_API_KEY",)),
+    "openai": ("openai_api_key", ("OPENAI_API_KEY",)),
+    "gemini": ("gemini_api_key", ("GEMINI_API_KEY", "GOOGLE_API_KEY")),
+}
+
+
+def _env_key(provider: str) -> str | None:
+    return next((os.environ[n] for n in API_KEYS[provider][1] if os.environ.get(n)), None)
+
+
+def api_key_source(provider: str = "anthropic") -> str | None:
+    """Where a provider's key comes from: "settings", "env", or None.
 
     A key saved in Settings wins, so this app can use its own key without
-    touching an ANTHROPIC_API_KEY that other tools on the computer rely on.
+    touching an ANTHROPIC_API_KEY (or OPENAI_API_KEY, GEMINI_API_KEY) that
+    other tools on the computer rely on.
     """
-    if _read(base_dir() / "settings.json").get("anthropic_api_key"):
+    if _read(base_dir() / "settings.json").get(API_KEYS[provider][0]):
         return "settings"
-    return "env" if os.environ.get("ANTHROPIC_API_KEY") else None
+    return "env" if _env_key(provider) else None
+
+
+def api_key(provider: str = "anthropic") -> str | None:
+    """The saved key, else the provider's environment variable.
+
+    Guests use the owner's keys: they can't see or set ones of their own.
+    """
+    return (_read(base_dir() / "settings.json").get(API_KEYS[provider][0])
+            or _env_key(provider) or None)
+
+
+def anthropic_api_key_source() -> str | None:
+    return api_key_source("anthropic")
 
 
 def anthropic_api_key() -> str | None:
-    """The saved key, else ANTHROPIC_API_KEY from the environment.
+    return api_key("anthropic")
 
-    Guests use the owner's key: they can't see or set one of their own.
+
+def ai_provider() -> str:
+    """The AI the owner picked in Settings: "anthropic", "openai" or "gemini".
+
+    Guests follow the owner's choice, as they use the owner's key.
     """
-    return (_read(base_dir() / "settings.json").get("anthropic_api_key")
-            or os.environ.get("ANTHROPIC_API_KEY") or None)
+    chosen = _read(base_dir() / "settings.json").get("ai_provider")
+    return chosen if chosen in API_KEYS else "anthropic"

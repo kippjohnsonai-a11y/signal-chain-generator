@@ -131,6 +131,8 @@ def failures() -> list[dict[str, Any]]:
 _PATTERNS = [
     re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}"),
     re.compile(r"sk-ant-[A-Za-z0-9_-]+"),
+    re.compile(r"\bsk-(?:proj-|svcacct-)?[A-Za-z0-9_-]{20,}"),
+    re.compile(r"AIza[A-Za-z0-9_-]{30,}"),
     re.compile(r"\b(?:ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9]{20,}"),
     re.compile(r"github_pat_[A-Za-z0-9_]{20,}"),
     re.compile(r"t3k_(?:pub|cs)_[A-Za-z0-9_-]+"),
@@ -142,7 +144,8 @@ _PATTERNS = [
 def _secrets() -> list[str]:
     """Secret values the app holds, so they can be blanked wherever they turn up."""
     settings = config._read(config.base_dir() / "settings.json")
-    values = [settings.get(k) for k in ("anthropic_api_key", "tone3000_key", "diagnostics_token")]
+    values = [settings.get(k) for k in ("anthropic_api_key", "openai_api_key", "gemini_api_key",
+                                         "tone3000_key", "diagnostics_token")]
     values += [os.environ.get(k) for k in os.environ
                if re.search(r"KEY|TOKEN|SECRET|PASSWORD", k)]
     for listed in ("STOMPXL_GUEST_EMAILS", "STOMPXL_OWNER_EMAILS", "STOMPXL_ALLOWED_LOGINS"):
