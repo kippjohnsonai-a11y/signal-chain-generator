@@ -59,7 +59,19 @@ fi
 stage="$(mktemp -d)"
 cp -R "$APP" "$stage/"
 ln -s /Applications "$stage/Applications"
-hdiutil create -quiet -volname "Signal Chain Generator" -srcfolder "$stage" -format UDZO "$DMG"
+# hdiutil sometimes fails with "Resource busy" on CI runners (XProtect is
+# still scanning the new files); a short wait and another try gets past it.
+for attempt in 1 2 3 4 5; do
+    rm -f "$DMG"
+    if hdiutil create -volname "Signal Chain Generator" -srcfolder "$stage" -format UDZO "$DMG"; then
+        break
+    fi
+    if [ "$attempt" = 5 ]; then
+        echo "hdiutil create failed $attempt times" >&2
+        exit 1
+    fi
+    sleep $((attempt * 5))
+done
 rm -rf "$stage"
 
 if [ -n "${SIGN_IDENTITY:-}" ]; then
