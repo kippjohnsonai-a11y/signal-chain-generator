@@ -47,8 +47,8 @@ Source: "{#Stage}\LICENSE.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#Stage}\NOTICE.txt"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
-Name: "{group}\{#AppName}"; Filename: "{app}\uvw.exe"; Parameters: "{#RunArgs} --launch"; IconFilename: "{app}\app.ico"; Comment: "Open {#AppName} in your browser"
-Name: "{userdesktop}\{#AppName}"; Filename: "{app}\uvw.exe"; Parameters: "{#RunArgs} --launch"; IconFilename: "{app}\app.ico"; Tasks: desktopicon
+Name: "{group}\{#AppName}"; Filename: "{app}\uvw.exe"; Parameters: "{#RunArgs} --launch --uv ""{app}\uvw.exe"""; IconFilename: "{app}\app.ico"; Comment: "Open {#AppName} in your browser"
+Name: "{userdesktop}\{#AppName}"; Filename: "{app}\uvw.exe"; Parameters: "{#RunArgs} --launch --uv ""{app}\uvw.exe"""; IconFilename: "{app}\app.ico"; Tasks: desktopicon
 
 [Tasks]
 Name: "desktopicon"; Description: "Create a desktop shortcut"; GroupDescription: "Shortcuts:"
@@ -56,7 +56,7 @@ Name: "desktopicon"; Description: "Create a desktop shortcut"; GroupDescription:
 [Run]
 ; Download Python and the app now, so the first click opens quickly.
 Filename: "{app}\uv.exe"; Parameters: "{#RunArgs} --help"; Flags: runhidden waituntilterminated; StatusMsg: "Downloading Python and the app (a minute or two the first time)..."
-Filename: "{app}\uvw.exe"; Parameters: "{#RunArgs} --launch"; Description: "Open {#AppName} now"; Flags: postinstall nowait skipifsilent
+Filename: "{app}\uvw.exe"; Parameters: "{#RunArgs} --launch --uv ""{app}\uvw.exe"""; Description: "Open {#AppName} now"; Flags: postinstall nowait skipifsilent
 
 [UninstallRun]
 ; Stop a running copy so its files can be removed. Your library stays in

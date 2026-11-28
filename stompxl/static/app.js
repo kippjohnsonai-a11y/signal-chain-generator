@@ -3048,3 +3048,72 @@ $("#nam-pedal-check").addEventListener("click", async () => {
 $("#nam-pedal-get").addEventListener("click", () => { $("#nam-pedal-dialog").close(); fillNam(); $("#nam-dialog").showModal(); });
 for (const id of ["#nam-pedal-open", "#nam-pedal-open2"]) $(id).addEventListener("click", () => openNamPedal());
 document.addEventListener("click", (e) => { if (e.target.closest("[data-nam-pedal]")) openNamPedal(); });
+
+// ---------------------------------------------------------------- updates
+// A newer release on PyPI: a bar at the top, and More > Updates. In the Mac
+// app and the Windows shortcut, Update now downloads it and restarts the app
+// on it; started any other way, the app says how to get it.
+let updateInfo = null;
+
+function updateText(u) {
+  if (u.install?.state === "downloading") return `Downloading version ${esc(u.install.version)}. This takes a minute or two; keep using the app.`;
+  if (u.install?.state === "restarting") return `Restarting on version ${esc(u.install.version)}...`;
+  if (u.install?.state === "failed") return `The update didn't work: ${esc(u.install.error || "")}`;
+  if (!u.available) return u.latest ? `You have the newest version (${esc(u.current)}).` : `Version ${esc(u.current || "unknown")}.`;
+  return `Version ${esc(u.latest)} is out (you have ${esc(u.current)}).`
+    + (u.can_install ? "" : ` ${esc(u.how || "")}`);
+}
+
+function renderUpdate(u) {
+  updateInfo = u;
+  const busy = ["downloading", "restarting"].includes(u.install?.state);
+  const bar = $("#update-bar");
+  bar.hidden = !(u.show || busy || u.install?.state === "failed");
+  $("#update-text").innerHTML = updateText(u);
+  $("#update-now").hidden = !u.can_install || !u.available || busy;
+  $("#update-later").hidden = busy || !u.available;
+  $("#update-status").innerHTML = updateText(u);
+  $("#update-install").hidden = !u.can_install || !u.available || busy;
+  $("#update-enabled").checked = u.enabled;
+  $("#more-update-text").textContent = u.available ? `Version ${u.latest} is out` : "Check for a newer version";
+  if (busy) setTimeout(pollUpdate, 3000);
+}
+
+async function checkUpdate(force = false) {
+  if ((state?.account || {}).guest) { $("#more-update").hidden = true; return; }
+  try { renderUpdate(await api(`/api/update${force ? "?force=true" : ""}`)); } catch (_) { /* offline: try again tomorrow */ }
+}
+
+async function pollUpdate() {
+  const before = updateInfo?.current;
+  try {
+    const v = await api("/api/version");
+    if (before && v.commit && v.commit !== before) { location.reload(); return; }
+    renderUpdate(await api("/api/update"));
+  } catch (_) {
+    setTimeout(pollUpdate, 3000);  // the old copy has stopped; the new one is starting
+  }
+}
+
+async function installUpdate() {
+  try {
+    const install = await api("/api/update/install", { method: "POST" });
+    renderUpdate({ ...updateInfo, install });
+  } catch (err) { toast(err.message, true); }
+}
+
+$("#update-now").addEventListener("click", installUpdate);
+$("#update-install").addEventListener("click", installUpdate);
+$("#update-later").addEventListener("click", async () => {
+  try { renderUpdate(await api("/api/update", { method: "PUT", body: { snooze_days: 7 } })); toast("I'll remind you in a week"); } catch (err) { toast(err.message, true); }
+});
+$("#update-check").addEventListener("click", async () => {
+  $("#update-status").textContent = "Checking...";
+  await checkUpdate(true);
+});
+$("#update-enabled").addEventListener("change", async (e) => {
+  try { renderUpdate(await api("/api/update", { method: "PUT", body: { enabled: e.target.checked } })); } catch (err) { toast(err.message, true); }
+});
+$("#more-update").addEventListener("click", () => checkUpdate());
+setTimeout(() => checkUpdate(), 4000);
+setInterval(() => checkUpdate(), 6 * 3600 * 1000);

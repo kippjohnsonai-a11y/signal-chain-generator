@@ -29,6 +29,8 @@ It runs on your own Mac or Windows PC, which keeps your library and talks to the
 - **Windows:** download `Signal-Chain-Generator-VERSION-Setup.exe` from the [latest release](https://github.com/kippjohnsonai-a11y/signal-chain-generator/releases/latest) and run it. No administrator rights needed. The installer isn't code-signed yet, so Windows may say "Windows protected your PC": click **More info → Run anyway**. Then open **Signal Chain Generator** from the Start menu; it opens in your browser, with no window of its own. Your library is in `%APPDATA%\Signal Chain Generator` (with `app.log` if something goes wrong). The pedal works over USB with Line 6's normal driver; close HX Edit while sending.
 - **Either, from a terminal:** with [uv](https://docs.astral.sh/uv/), `uvx signal-chain-generator`.
 
+**Updates:** the app checks once a day for a new release and shows a bar at the top when one is out. In the Mac app and the Windows install, **Update now** downloads it and restarts the app on it, with your library and settings kept. **Remind me in a week** hides the bar for that release, and **More > Updates** checks on demand or turns the reminder off. From a terminal, run `uvx signal-chain-generator@latest`.
+
 ## Setup on a Mac (Apple Silicon)
 
 **Want it on your phone at home?** Turn on **More → Phones on this Wi-Fi** and scan the pairing QR code with the phone. Only paired phones get in, it's off until you turn it on, and the pedal stays plugged into the Mac.
