@@ -115,6 +115,11 @@ def _with_preset_name(version: dict[str, Any], name: str) -> tuple[dict[str, Any
 
 TONE_STARTERS = Path(__file__).parent / "tone_starters.json"
 
+#: Generating for NAM on the pedal with no captures listed on this computer.
+NO_CAPTURES = ("This computer doesn't know which NAM captures are on your pedal yet. "
+               "Tap \"Which NAMs are on my pedal?\" in Settings > NAM captures to tell it "
+               "(one tap if you have the starter pack), then try again.")
+
 
 def tone_starters() -> dict[str, Any]:
     """Suggested starting tweaks and gear notes, offered in the "My tone" dialog."""
@@ -393,6 +398,10 @@ class DiagnosticsIn(BaseModel):
     events: list[str] = []
 
 
+class NamHaveIn(BaseModel):
+    packs: list[str]
+
+
 class NamAddIn(BaseModel):
     tone: str
     slot: int | None = None
@@ -507,17 +516,22 @@ def create_app(library: Library | None = None, caller_factory: Any = None) -> Fa
             return _need(desk.record(), "preset open from the pedal (open it again)")
         return _need(lib.version(version_id), "version")
 
-    def _setup(guitar_id: int, rig_id: int, options: Options, instructions: str) -> engine.Setup:
+    def _setup(guitar_id: int, rig_id: int, options: Options, instructions: str,
+               *, builds: bool = True) -> engine.Setup:
         guitar = _need(lib.guitar(guitar_id), "guitar")
         rig = _need(lib.rig(rig_id), "rig")
         prefs = [p["text"] for p in lib.preferences(guitar_id, active_only=True)]
         exp_pedal = config.get_setting("exp_pedal") or xl.DEFAULT_EXP_PEDAL
         gate_mode = config.get_setting("gate_mode") or xl.DEFAULT_GATE
         captures = xl.captures_for(rig["kind"], config.read_settings(), full_rig=options.full_rig)
+        if builds and rig["kind"] == "nam_pedal" and not xl.captures_for("nam_pedal", config.read_settings()):
+            raise HTTPException(409, NO_CAPTURES)
         if options.full_rig and rig["kind"] == "nam_pedal" and not captures:
             raise HTTPException(400, "None of your NAM captures in an IR slot include their cab. "
-                                     "Add the full-rig pack in Settings > Get captures from TONE3000, "
-                                     "or turn off \"Full-rig captures only\".")
+                                     "If the full-rig pack is already on your pedal, tell the app in "
+                                     "Settings > NAM captures > \"Which NAMs are on my pedal?\"; if not, "
+                                     "add it from Get captures from TONE3000, or turn off "
+                                     "\"Full-rig captures only\".")
         return engine.Setup(guitar=guitar, rig=rig, options=options.model_dump(),
                             preferences=prefs, instructions=instructions, exp_pedal=exp_pedal,
                             gate_mode=gate_mode, captures=captures,
@@ -578,6 +592,7 @@ def create_app(library: Library | None = None, caller_factory: Any = None) -> Fa
                 "gate_mode": settings.get("gate_mode") or xl.DEFAULT_GATE,
                 "gate_modes": xl.GATE_MODES,
                 "nam_captures": xl.parse_captures(settings.get("nam_captures")),
+                "nam_packs": namlib.pack_status(settings),
                 "nam_usb_routing": xl.usb_routing(settings) is not None,
                 "tone3000_key": tone3000.has_key(),
                 "tone3000_signed_in": tone3000.signed_in(),
@@ -959,7 +974,8 @@ def create_app(library: Library | None = None, caller_factory: Any = None) -> Fa
         preset itself is left exactly as it is."""
         record = _need(lib.version(version_id), "version")
         song = _need(lib.song(record["song_id"]), "song")
-        setup = _setup(record["guitar_id"], record["rig_id"], Options(**_options(record)), "")
+        setup = _setup(record["guitar_id"], record["rig_id"], Options(**_options(record)), "",
+                       builds=False)
 
         def work(report: Any) -> dict[str, Any]:
             report(f"Asking {_ai_name()} about the song...")
@@ -1221,6 +1237,25 @@ def create_app(library: Library | None = None, caller_factory: Any = None) -> Fa
         except ValueError as exc:
             raise HTTPException(404, str(exc)) from exc
         return {"job_id": jobs.start(lambda report: namlib.add_many(entries, report=report))}
+
+    @app.post("/api/nam/on-pedal")
+    def nam_on_pedal(body: NamHaveIn) -> dict[str, Any]:
+        """The player says these packs are already on the pedal: list them, download nothing."""
+        unknown = [p for p in body.packs if p not in namlib.PACKS]
+        if unknown or not body.packs:
+            raise HTTPException(400, f"No pack called {', '.join(unknown) or '(none)'}")
+        captures = namlib.mark_on_pedal(body.packs)
+        return {"nam_captures": captures, "nam_packs": namlib.pack_status()}
+
+    @app.post("/api/nam/check-pedal")
+    def nam_check_pedal() -> dict[str, Any]:
+        """Read the pedal's presets (read-only) and report the NAM captures they use."""
+
+        def work(report: Any) -> dict[str, Any]:
+            report("Reading your presets from the pedal (nothing on it changes)...")
+            return namlib.nam_on_pedal(pedal.read_all(report))
+
+        return {"job_id": jobs.start(work)}
 
     @app.get("/api/nam/download")
     def nam_download() -> Response:

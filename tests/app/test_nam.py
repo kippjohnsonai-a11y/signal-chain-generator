@@ -141,7 +141,7 @@ def test_nam_on_the_pedal_holds_claude_to_the_capture_and_cab_rules():
 def test_nam_on_the_pedal_needs_captures_before_any_claude_call():
     setup = engine.Setup(guitar=STRAT, rig={"kind": "nam_pedal", "notes": ""}, options=OPTS)
     fake = NamClaude([], "")
-    with pytest.raises(LLMGenerationError, match="add them, with their IR slots"):
+    with pytest.raises(LLMGenerationError, match="Which NAMs are on my pedal"):
         engine._build("song", setup, fake, lambda _m: None, engine.catalog(), {"preset_name": "x"},
                       current=None, feedback="")
     assert fake.requests == []
@@ -386,3 +386,79 @@ def test_retune_for_another_guitar_keeps_the_nam_chain_and_redials_the_values():
     assert '"Gain": 0.4' in snaps
     assert engine.diff_chains(first.chain, second.chain)[0].startswith("Scream 808 Gain")
     assert "Same signal chain" in second.notes
+
+
+# -- captures already on the pedal (a new computer starts with none listed) ----
+
+def _nam_preset(slot):
+    """A NAM-on-the-pedal preset whose NAM block plays IR slot ``slot``."""
+    captures = [{"name": "On pedal", "slot": slot, "description": "x", "cab": True}]
+    setup = engine.Setup(guitar=STRAT, rig={"kind": "nam_pedal", "notes": ""}, options=OPTS,
+                         captures=xl.captures_for("nam_pedal", {"nam_captures": captures}))
+    return engine.generate("Wonderwall", setup, NamClaude(["Scream 808"], "On pedal")).preset
+
+
+def test_saying_a_pack_is_on_the_pedal_lists_it_without_downloading():
+    from stompxl import namlib
+
+    config.write_settings({"nam_captures": [{"name": "Mine", "slot": 101, "description": "", "cab": False},
+                                            {"name": "Twin Clean", "slot": None}]})
+    assert [p["listed"] for p in namlib.pack_status()] == [0, 0]
+    captures = namlib.mark_on_pedal(["starter"])
+    starter = namlib.pack("starter")
+    # The pack's slot 101 capture replaces "Mine" there; the computer-only one stays.
+    assert [c["slot"] for c in captures if c["slot"]] == [e["slot"] for e in starter]
+    assert "Mine" not in [c["name"] for c in captures] and "Twin Clean" in [c["name"] for c in captures]
+    status = {p["name"]: p for p in namlib.pack_status()}
+    assert status["starter"]["listed"] == status["starter"]["count"] == 20
+    assert (status["starter"]["first_slot"], status["starter"]["last_slot"]) == (101, 120)
+    assert status["full-rig"]["listed"] == 0
+    # Saying so again changes nothing, and keeps what a download recorded.
+    config.write_settings({"nam_captures": [{**c, "tone_id": 1} if c["slot"] == 101 else c for c in captures]})
+    again = namlib.mark_on_pedal(["starter"])
+    assert next(c for c in again if c["slot"] == 101)["tone_id"] == 1
+
+
+def test_checking_the_pedal_finds_the_packs_its_presets_use():
+    from stompxl import namlib
+
+    presets = {0: ("Back In Black", _nam_preset(104)), 1: ("Clean", _nam_preset(122)),
+               2: ("Also 104", _nam_preset(104)), 3: ("Odd one", _nam_preset(7)),
+               4: ("Third", _nam_preset(104))}
+    found = namlib.nam_on_pedal(presets)
+    assert found["presets_read"] == 5
+    assert found["packs"] == ["starter", "full-rig"]
+    assert [s["slot"] for s in found["slots"]] == [7, 104, 122]
+    s104 = next(s for s in found["slots"] if s["slot"] == 104)
+    assert s104["presets"] == ["Back In Black", "Also 104", "Third"] and s104["pack"] == "starter"
+    assert s104["capture"] == next(e["name"] for e in namlib.pack("starter") if e["slot"] == 104)
+    assert found["unknown"] == [7]
+
+
+def test_generating_nam_on_the_pedal_with_nothing_listed_asks_which_are_on_it(tmp_path, monkeypatch):
+    from fastapi.testclient import TestClient
+
+    from stompxl import pedal
+    from stompxl.server import NO_CAPTURES, create_app
+
+    from .test_server import _wait
+
+    lib = Library(tmp_path / "lib.sqlite3")
+    client = TestClient(create_app(lib, caller_factory=lambda: NamClaude(["Scream 808"], "Tweed Deluxe")))
+    state = client.get("/api/state").json()
+    assert [p["listed"] for p in state["settings"]["nam_packs"]] == [0, 0]
+    guitar = client.post("/api/guitars", json={"name": "Strat", "pickups": "SSS"}).json()["id"]
+    rig = next(r["id"] for r in state["rigs"] if r["kind"] == "nam_pedal")
+    body = {"song": "x", "guitar_id": guitar, "rig_id": rig}
+    refused = client.post("/api/generate", json=body)
+    assert refused.status_code == 409 and refused.json()["detail"] == NO_CAPTURES
+
+    monkeypatch.setattr(pedal, "read_all", lambda report: {5: ("Song", _nam_preset(104))})
+    checked = _wait(client, client.post("/api/nam/check-pedal").json()["job_id"])
+    assert checked["packs"] == ["starter"]
+    assert client.post("/api/nam/on-pedal", json={"packs": ["nope"]}).status_code == 400
+    marked = client.post("/api/nam/on-pedal", json={"packs": checked["packs"]}).json()
+    assert len(marked["nam_captures"]) == 20 and marked["nam_packs"][0]["listed"] == 20
+    done = _wait(client, client.post("/api/generate", json=body).json()["job_id"])
+    version = client.get(f"/api/versions/{done['version_id']}").json()
+    assert version["view"]["nam"]["capture"]["name"] == "Tweed Deluxe"
