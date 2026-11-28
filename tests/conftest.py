@@ -144,3 +144,11 @@ def _no_layout_settle(monkeypatch: pytest.MonkeyPatch) -> None:
 def _isolated_data_dir(tmp_path_factory, monkeypatch: pytest.MonkeyPatch) -> None:
     """Keep the app's data folder (library, settings, Claude cost log) off the real one."""
     monkeypatch.setenv("STOMPXL_DATA_DIR", str(tmp_path_factory.mktemp("stompxl-data")))
+
+
+@pytest.fixture(autouse=True)
+def _no_update_check(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Keep tests off PyPI: the update check answers "can't reach it"."""
+    from stompxl import updates
+
+    monkeypatch.setattr(updates, "fetch_latest", lambda timeout=5.0: None)

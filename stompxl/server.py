@@ -54,6 +54,7 @@ from . import (
     pedal,
     quick_picks,
     tone3000,
+    updates,
     usb_relay,
     users,
     view,
@@ -88,6 +89,11 @@ def _code_version() -> dict[str, Any]:
 
 #: Read once at startup: a server keeps running the code it started with.
 VERSION = _code_version()
+
+
+class UpdatePrefs(BaseModel):
+    enabled: bool | None = None
+    snooze_days: float | None = None
 
 
 class Options(BaseModel):
@@ -750,6 +756,35 @@ def create_app(library: Library | None = None, caller_factory: Any = None) -> Fa
     def setup_done() -> dict[str, Any]:
         config.write_settings({"setup_done": True})
         return {"ok": True}
+
+    # -- updates -----------------------------------------------------------------
+
+    def _no_guests() -> None:
+        if users.is_guest():
+            raise HTTPException(403, "Updates are the app owner's to install.")
+
+    @app.get("/api/update")
+    def update_status(force: bool = False) -> dict[str, Any]:
+        """Is a newer release out? Asks PyPI at most once a day unless forced."""
+        _no_guests()
+        return updates.status(force=force)
+
+    @app.put("/api/update")
+    def update_prefs(body: UpdatePrefs) -> dict[str, Any]:
+        _no_guests()
+        if body.enabled is not None:
+            updates.set_enabled(body.enabled)
+        if body.snooze_days is not None:
+            updates.snooze(min(max(body.snooze_days, 0), 365))
+        return updates.status()
+
+    @app.post("/api/update/install")
+    def update_install() -> dict[str, Any]:
+        _no_guests()
+        try:
+            return updates.start_install()
+        except RuntimeError as exc:
+            raise HTTPException(409, str(exc)) from exc
 
     # -- guitars and preferences -----------------------------------------------
 

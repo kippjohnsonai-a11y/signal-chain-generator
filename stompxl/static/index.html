@@ -47,6 +47,10 @@
   </aside>
 
   <main id="main">
+    <div id="update-bar" class="tip" role="status" hidden>
+      <div class="tip-body"><b>Update</b> <span id="update-text"></span></div>
+      <div class="tip-actions"><button type="button" class="primary small" id="update-now">Update now</button><button type="button" class="ghost small" id="update-later">Remind me in a week</button></div>
+    </div>
     <!-- New preset form -->
     <section id="new-view" class="card">
       <button class="ghost back-btn" data-back type="button">&larr; Songs</button>
@@ -242,6 +246,7 @@
         <button class="more-item" type="button" id="more-setup">Set up this computer<span>API key, guitar, HX Edit and the pedal</span></button>
         <button class="more-item" type="button" id="more-homescreen" hidden>Add to Home Screen<span>Open the app full screen, like any other app</span></button>
         <button class="more-item" type="button" id="more-lan">Phones on this Wi-Fi<span>Pair a phone to use the app at home</span></button>
+        <button class="more-item" data-open="update-dialog" id="more-update">Updates<span id="more-update-text">Check for a newer version</span></button>
         <button class="more-item" data-open="library-dialog">Back up or move your library<span>Export everything to one file, or bring a library in</span></button>
         <button class="more-item" data-open="settings-dialog" data-section="diag" data-title="Diagnostics" id="more-diag">Diagnostics<span>GitHub token and Send diagnostics</span></button>
         <button class="more-item" data-report type="button" id="more-help">Report a problem<span>Gather what just happened into a problem report</span></button>
@@ -446,6 +451,20 @@
     <p class="hint">Replaces the library here with one you exported. The library here is saved first, in the app's data folder, so you can bring it back. Keys and tokens here stay as they are.</p>
     <label class="button ghost">Choose an export... <input type="file" id="library-import" accept=".zip,application/zip" hidden></label>
     <p class="hint" id="library-result"></p>
+  </div>
+  <form method="dialog"><button class="ghost">Close</button></form>
+</dialog>
+
+<!-- Updates -->
+<dialog id="update-dialog" class="page">
+  <button type="button" class="page-back" data-close-dialog>&lsaquo; Back</button>
+  <h2>Updates</h2>
+  <p id="update-status">Checking...</p>
+  <div class="stack">
+    <button type="button" class="primary" id="update-install" hidden>Update now</button>
+    <button type="button" class="ghost" id="update-check">Check now</button>
+    <label class="toggle"><input type="checkbox" id="update-enabled"> Tell me when a new version is out</label>
+    <p class="hint">The app asks PyPI, where releases are published, once a day. Nothing about you or your library is sent. Updating keeps your library and settings; the app restarts on the new version in a minute or two.</p>
   </div>
   <form method="dialog"><button class="ghost">Close</button></form>
 </dialog>

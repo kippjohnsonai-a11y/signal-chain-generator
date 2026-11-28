@@ -57,15 +57,24 @@ def main() -> None:
     parser.add_argument("--no-browser", action="store_true")
     parser.add_argument("--launch", action="store_true",
                         help="for desktop shortcuts: reuse a running copy, log to a file")
+    parser.add_argument("--uv", help="for desktop shortcuts: the uv that started this, for updates")
     args = parser.parse_args()
 
-    from . import launch
+    import os
+
+    from . import launch, updates
 
     url = f"http://{args.host}:{args.port}/"
+    if args.uv:
+        os.environ[updates.UV_ENV] = args.uv
+        os.environ["SCG_PORT"] = str(args.port)
     if args.launch:
         launch.log_to_file()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
-    if args.launch and launch.already_running(url, webbrowser.open):
+    quiet = bool(os.environ.get(updates.NO_OPEN_ENV))
+    if args.launch and updates.hand_over(sys.argv[1:]):
+        return
+    if args.launch and launch.already_running(url, (lambda _url: None) if quiet else webbrowser.open):
         return
 
     import atexit
@@ -75,7 +84,7 @@ def main() -> None:
     from . import access, lan
     from .server import create_app
 
-    if not args.no_browser:
+    if not args.no_browser and not quiet:
         threading.Timer(1.0, lambda: webbrowser.open(url)).start()
     print(f"{APP_FULL_NAME} running at {url}  (Ctrl+C to stop)")
     app = create_app()
