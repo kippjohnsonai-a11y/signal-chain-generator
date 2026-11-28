@@ -716,6 +716,7 @@ async function runJob(title, start) {
   if (job.status === "error") {
     runJob.lastError = job;
     toast(job.error, true);
+    if (NO_CAPTURES_RE.test(job.error || "")) openNamPedal();
     if (current.songId) await openSong(current.songId, current.versionId); else show("new-view");
     return null;
   }
@@ -1807,6 +1808,7 @@ function fillSettings() {
   f.elements.nam_captures.value = (state.settings.nam_captures || []).map(captureLine).join("\n");
   namRowEdit(null);
   renderNamRows();
+  renderNamPacksStatus();
   $("#nam-usb-status").textContent = state.settings.nam_usb_routing
     ? "NAM on computer: USB routing learnt."
     : "NAM on computer: run `stompxl learn-nam-usb` once so presets come ready to play.";
@@ -2278,6 +2280,7 @@ async function updateRoom(form) {
   const rig = state?.rigs.find((r) => String(r.id) === String(rigId));
   const nam = !!rig && rig.kind.startsWith("nam_");
   for (const el of form.querySelectorAll("[data-nam-only]")) el.hidden = !nam;
+  for (const el of form.querySelectorAll("[data-nam-missing]")) el.hidden = !(rig?.kind === "nam_pedal" && !namCaptures().length);
   if (!box || !rigId) return;
   const q = new URLSearchParams({ rig_id: rigId, ...toggleValues(formData(form)) });
   let r;
@@ -2356,6 +2359,10 @@ $("#generate-form").addEventListener("submit", async (e) => {
   const d = formData(f);
   try { localStorage.setItem(TOGGLES_KEY, JSON.stringify(toggleValues(d))); } catch (_) { /* ignore */ }
   if (!d.guitar_id) { $("#guitars-dialog").showModal(); return toast("Add a guitar first", true); }
+  // NAM on the pedal with no captures listed here (a new computer): ask which
+  // are on the pedal, then carry on building, rather than refusing.
+  const rig = state.rigs.find((r) => String(r.id) === String(d.rig_id));
+  if (rig?.kind === "nam_pedal" && !namCaptures().length) return openNamPedal(() => f.requestSubmit());
   const songId = f.dataset.songId ? Number(f.dataset.songId) : null;
   delete f.dataset.songId;
   const result = await runJob(`Building "${d.song}"`, () => api("/api/generate", {
@@ -2930,3 +2937,113 @@ $("#diag-copy").addEventListener("click", async () => {
     $("#diag-result").textContent = "Couldn't copy here: select the text below and copy it.";
   }
 });
+
+
+// ------------------------------------------------- NAM captures on the pedal
+//
+// The capture list is kept per computer, so a new one starts empty even when
+// the pedal already holds the packs. This dialog lists them in one tap, or
+// reads the pedal's presets to see which captures they use.
+
+const NO_CAPTURES_RE = /know which NAM captures are on your pedal/;
+let namPedalThen = null;
+
+function packLine(p) {
+  const slots = `IR slots ${p.first_slot}-${p.last_slot}`;
+  const status = p.listed === p.count ? "listed on this computer ✓"
+    : p.listed ? `${p.listed} of ${p.count} listed on this computer` : "not listed on this computer";
+  return `${p.title}: ${p.count} captures in ${slots}, ${status}`;
+}
+
+function renderNamPacksStatus() {
+  const packs = state.settings.nam_packs || [];
+  const full = packs.filter((p) => p.listed === p.count).map((p) => p.title);
+  const el = $("#nam-packs-status");
+  if (el) el.textContent = full.length ? `On your pedal: ${full.join(" and ")} ✓.`
+    : namCaptures().length ? "" : "No captures listed on this computer yet.";
+}
+
+function renderNamPedalPacks(ticked = null) {
+  $("#nam-pedal-packs").innerHTML = (state.settings.nam_packs || []).map((p) => {
+    const on = ticked ? ticked.includes(p.name) : p.listed === p.count;
+    return `<label class="toggle"><input type="checkbox" data-pack="${esc(p.name)}"${on ? " checked" : ""}> ${esc(packLine(p))}</label>`;
+  }).join("");
+}
+
+function openNamPedal(then = null) {
+  namPedalThen = then;
+  renderNamPedalPacks();
+  $("#nam-pedal-log").hidden = true;
+  $("#nam-pedal-result").innerHTML = "";
+  $("#nam-pedal-save").textContent = then ? "These are on my pedal: build it" : "These are on my pedal";
+  $("#nam-pedal-dialog").showModal();
+}
+
+function refreshNamEverywhere() {
+  if ($("#settings-form")) {
+    $("#settings-form").elements.nam_captures.value = (state.settings.nam_captures || []).map(captureLine).join("\n");
+    renderNamRows();
+  }
+  renderNamPacksStatus();
+  for (const f of document.querySelectorAll("form")) if (f.querySelector("[data-nam-missing]")) updateRoom(f);
+  if (typeof renderMore === "function") renderMore();
+}
+
+$("#nam-pedal-save").addEventListener("click", async () => {
+  const packs = [...$("#nam-pedal-packs").querySelectorAll("input[data-pack]:checked")].map((i) => i.dataset.pack);
+  if (!packs.length) return toast("Tick the packs that are on your pedal, or tap Check my pedal.", true);
+  try {
+    const r = await api("/api/nam/on-pedal", { method: "POST", body: { packs } });
+    state.settings.nam_captures = r.nam_captures;
+    state.settings.nam_packs = r.nam_packs;
+    refreshNamEverywhere();
+    $("#nam-pedal-dialog").close();
+    toast(`Got it: ${r.nam_captures.filter((c) => c.slot != null).length} NAM captures on your pedal.`);
+    const then = namPedalThen;
+    namPedalThen = null;
+    if (then) then();
+  } catch (err) { toast(err.message, true); }
+});
+
+$("#nam-pedal-check").addEventListener("click", async () => {
+  const log = $("#nam-pedal-log");
+  const out = $("#nam-pedal-result");
+  const btn = $("#nam-pedal-check");
+  log.hidden = false;
+  log.textContent = "Reading your presets...";
+  out.innerHTML = "";
+  btn.disabled = true;
+  try {
+    const { job_id } = await api("/api/nam/check-pedal", { method: "POST" });
+    let job;
+    for (;;) {
+      await new Promise((r) => setTimeout(r, 1200));
+      job = await api(`/api/jobs/${job_id}`);
+      log.textContent = job.log.slice(-1)[0] || "Reading your presets...";
+      if (job.status !== "running") break;
+    }
+    if (job.status !== "done") throw new Error(job.error || "That didn't work");
+    const r = job.result;
+    log.hidden = true;
+    const titles = Object.fromEntries((state.settings.nam_packs || []).map((p) => [p.name, p.title]));
+    if (!r.slots.length) {
+      out.innerHTML = `<p>None of your ${r.presets_read} presets use a NAM block yet, so the pedal can't say which captures it holds. If you loaded the packs in HX Edit, tick them above.</p>`;
+    } else {
+      renderNamPedalPacks(r.packs.length ? r.packs : null);
+      const found = r.packs.map((p) => titles[p] || p);
+      out.innerHTML = `<p>${r.presets_read} presets read. NAM captures in use: IR slot${r.slots.length === 1 ? "" : "s"} ${r.slots.map((s) => s.slot).join(", ")}.`
+        + (found.length ? ` That's the ${found.join(" and the ")}: ticked above, tap the button to confirm.` : "")
+        + "</p>"
+        + (r.unknown.length ? `<p>Slot${r.unknown.length === 1 ? "" : "s"} ${r.unknown.join(", ")} ${r.unknown.length === 1 ? "isn't" : "aren't"} in a pack. Add ${r.unknown.length === 1 ? "it" : "them"} with a name in Settings > NAM captures so the app can pick ${r.unknown.length === 1 ? "it" : "them"} (used in ${esc(r.slots.filter((s) => r.unknown.includes(s.slot)).flatMap((s) => s.presets).slice(0, 3).join(", "))}).</p>` : "");
+    }
+  } catch (err) {
+    log.textContent = err.message;
+    toast(err.message, true);
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+$("#nam-pedal-get").addEventListener("click", () => { $("#nam-pedal-dialog").close(); fillNam(); $("#nam-dialog").showModal(); });
+for (const id of ["#nam-pedal-open", "#nam-pedal-open2"]) $(id).addEventListener("click", () => openNamPedal());
+document.addEventListener("click", (e) => { if (e.target.closest("[data-nam-pedal]")) openNamPedal(); });

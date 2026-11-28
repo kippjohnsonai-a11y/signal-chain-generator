@@ -150,3 +150,88 @@ def _list(capture: dict[str, Any]) -> None:
     keep.append(capture)
     keep.sort(key=lambda c: (c["slot"] is None, c["slot"] or 0, c["name"].lower()))
     config.write_settings({"nam_captures": xl.parse_captures(keep)})
+
+
+# -- captures already on the pedal ---------------------------------------------
+#
+# The capture list lives in this computer's settings, so a new computer (or a
+# fresh install) starts with none, even when the pedal already holds the packs.
+# These let the player say so in one tap, or have the app look at the pedal's
+# presets, with nothing downloaded or sent.
+
+#: What the app calls each pack, for people.
+PACK_TITLES = {"starter": "Starter pack", "full-rig": "Full-rig pack"}
+
+
+def _is_listed(entry: dict[str, Any], captures: list[dict[str, Any]]) -> bool:
+    return any(c["slot"] == entry["slot"] and c["name"].lower() == entry["name"].lower()
+               for c in captures)
+
+
+def pack_status(settings: dict[str, Any] | None = None) -> list[dict[str, Any]]:
+    """Each pack, its IR slots, and how many of its captures this computer lists."""
+    captures = xl.parse_captures((settings if settings is not None else config.read_settings())
+                                 .get("nam_captures"))
+    out = []
+    for name in PACKS:
+        entries = pack(name)
+        slots = [e["slot"] for e in entries]
+        out.append({"name": name, "title": PACK_TITLES.get(name, name), "count": len(entries),
+                    "first_slot": min(slots), "last_slot": max(slots),
+                    "listed": sum(_is_listed(e, captures) for e in entries)})
+    return out
+
+
+def mark_on_pedal(names: list[str]) -> list[dict[str, Any]]:
+    """List these packs' captures as on the pedal, without downloading anything.
+
+    A capture this computer already lists under the same name and slot is kept
+    as it is (it may know where its files are); one in the same slot under
+    another name is replaced, as the pedal holds one capture per slot.
+    """
+    current = xl.parse_captures(config.get_setting("nam_captures"))
+    for name in names:
+        for entry in pack(name):
+            capture = {"name": entry["name"], "slot": entry["slot"],
+                       "description": entry.get("description", ""), "cab": bool(entry.get("cab"))}
+            if _is_listed(capture, current):
+                continue
+            current = [c for c in current if c["name"].lower() != capture["name"].lower()
+                       and c["slot"] != capture["slot"]]
+            current.append(capture)
+    current.sort(key=lambda c: (c["slot"] is None, c["slot"] or 0, c["name"].lower()))
+    config.write_settings({"nam_captures": xl.parse_captures(current)})
+    return xl.parse_captures(current)
+
+
+def nam_on_pedal(presets: dict[int, tuple[str, dict[str, Any]]]) -> dict[str, Any]:
+    """Which IR slots the pedal's presets play NAM captures from, and which packs they match.
+
+    ``presets`` is :func:`stompxl.pedal.read_all`. The pedal can't be asked for
+    its IR list itself, so this goes by what its presets use: a pack counts as
+    found once any of its slots is in use.
+    """
+    from . import importer
+
+    used: dict[int, list[str]] = {}
+    for _slot, (name, hlx) in sorted(presets.items()):
+        try:
+            chain, _notes = importer.hlx_to_chain(hlx, captures=[])
+        except Exception:  # noqa: BLE001 - a preset that won't convert says nothing about NAM
+            continue
+        for block in chain.get("blocks") or []:
+            ir = xl.nam_slot(block) if block.get("nam") else None
+            if ir is not None and name not in used.setdefault(ir, []):
+                used[ir].append(name)
+    captures = xl.parse_captures(config.get_setting("nam_captures"))
+    by_slot = {e["slot"]: (pack_name, e) for pack_name in PACKS for e in pack(pack_name)}
+    slots, found = [], []
+    for ir, names in sorted(used.items()):
+        listed = next((c for c in captures if c["slot"] == ir), None)
+        pack_name, entry = by_slot.get(ir, (None, None))
+        if pack_name and pack_name not in found:
+            found.append(pack_name)
+        slots.append({"slot": ir, "presets": names, "pack": pack_name,
+                      "capture": (listed or entry or {}).get("name"), "listed": listed is not None})
+    return {"presets_read": len(presets), "slots": slots, "packs": found,
+            "unknown": [s["slot"] for s in slots if not s["pack"] and not s["listed"]]}

@@ -42,6 +42,10 @@ Captures belong to the people who made them; TONE3000 hosts them. Each person si
 
 The converter is [hx-stomp-nam-lite's](https://github.com/nocaseguy/hx-stomp-nam-lite) `tools/nam2ir.py` (GPL-3.0). The app downloads it from GitHub on first use, at the commit that matches the firmware, and runs it as a separate program.
 
+### Already on your pedal? (a new computer)
+
+Each computer keeps its own list of captures, so a new computer, or a fresh install, starts with none even when the pedal already has them. Generating for NAM on the pedal then asks **Which NAMs are on your pedal?** (also in Settings > NAM captures): tick the starter pack and/or the full-rig pack and the app lists them, with nothing downloaded and nothing on the pedal changed. Not sure? **Check my pedal** reads your presets (read-only) and ticks the packs whose slots they use; a slot that isn't in a pack is named so you can add it by hand. The pedal can't yet be asked for its IR list itself, so this goes by what your presets use. Moving your library with More > Back up or move your library carries the list too.
+
 The command line does the same: `stompxl nam starter`, `stompxl nam full-rig`, `stompxl nam find fender twin`, and `stompxl nam add LINK --slot 136 --name "Twin Edge" --model "edge"`. Sign in from the app first.
 
 ### The starter library

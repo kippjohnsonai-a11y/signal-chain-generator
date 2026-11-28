@@ -1180,7 +1180,8 @@ def _build(song: str, setup: Setup, call: LLMCaller, report: Progress, cat: Mode
            brief: dict[str, Any], current: dict[str, Any] | None, feedback: str) -> Result:
     if setup.nam == "pedal" and not setup.captures:
         raise LLMGenerationError(
-            "NAM on the pedal needs your captures: add them, with their IR slots, in Settings.")
+            "NAM on the pedal needs your captures: in Settings > NAM captures, tap \"Which NAMs "
+            "are on my pedal?\" (one tap if you have the starter pack), or add them with their IR slots.")
     report("Choosing blocks...")
     blocks, interpretation, gate, capture = hg._ask(
         call,

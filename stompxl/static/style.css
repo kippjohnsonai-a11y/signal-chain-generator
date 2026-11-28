@@ -197,6 +197,8 @@ dialog.wide { width: min(760px, calc(100vw - 32px)); }
 .explain-error { color: var(--danger); }
 
 .dsp-room { background: var(--panel-2); border-radius: 8px; padding: .55rem .7rem; margin: 0 0 .75rem; font-size: .9rem; }
+.nam-missing { background: var(--panel-2); border-left: 3px solid var(--accent, #e0a030); border-radius: 8px; padding: .55rem .7rem; margin: 0 0 .75rem; font-size: .9rem; }
+.nam-pedal-log { white-space: pre-wrap; overflow-wrap: anywhere; }
 .room-head { display: flex; justify-content: space-between; gap: .5rem; flex-wrap: wrap; }
 .room-head span { color: var(--muted); }
 .room-bar { height: 6px; background: var(--bg); border-radius: 3px; margin: .35rem 0; overflow: hidden; }

@@ -80,6 +80,7 @@
           <label class="toggle" title="An off drive just before the amp. Stage mode's Gain boost switches it on. Left out when the chain is full."><input type="checkbox" name="stage_boost" checked> Stage boost</label>
           <label class="toggle" data-nam-only hidden title="NAM rigs: use only captures that include their cab, so the chain needs no cab block. Handy when Poly Capo leaves no DSP for a cab."><input type="checkbox" name="full_rig"> Full-rig captures only (no cab)</label>
         </fieldset>
+        <p class="nam-missing" data-nam-missing hidden>This computer doesn't know which NAM captures are on your pedal yet. <button type="button" class="ghost small" data-nam-pedal>Which NAMs are on my pedal?</button></p>
         <div class="dsp-room" data-room></div>
         <label>Extra instructions (optional)
           <input name="instructions" placeholder="e.g. live version, a bit less gain than the record">
@@ -401,6 +402,7 @@
     </div>
     <div data-set="nam" class="stack">
     <h3 class="set-title">NAM captures</h3>
+    <p class="hint nam-packs-line"><span id="nam-packs-status"></span> <button type="button" class="ghost small" id="nam-pedal-open">Which NAMs are on my pedal?</button></p>
     <ul id="nam-rows" class="list nam-rows"></ul>
     <div id="nam-row-form" class="nam-row-form">
       <div class="row">
@@ -662,6 +664,23 @@
   <form method="dialog"><button class="ghost">Close</button></form>
 </dialog>
 
+<!-- NAM captures already on the pedal -->
+<dialog id="nam-pedal-dialog" class="page">
+  <button type="button" class="page-back" data-close-dialog>&lsaquo; Back</button>
+  <h2>Which NAMs are on your pedal?</h2>
+  <div class="stack">
+    <p class="hint" id="nam-pedal-why">Each computer keeps its own list of your NAM captures, so a new computer starts with none, even when your pedal already has them. Tick what's on your pedal: nothing is downloaded and nothing on the pedal changes.</p>
+    <div id="nam-pedal-packs" class="stack"></div>
+    <p><button type="button" class="primary" id="nam-pedal-save">These are on my pedal</button></p>
+    <h3>Not sure?</h3>
+    <p><button type="button" class="ghost" id="nam-pedal-check">Check my pedal</button> <span class="hint">Looks through your presets for NAM blocks and ticks the packs they use. It only reads, and takes a minute or so.</span></p>
+    <p id="nam-pedal-log" class="hint nam-pedal-log" hidden></p>
+    <div id="nam-pedal-result" class="hint"></div>
+    <p class="hint">Not on your pedal yet? <button type="button" class="ghost small" id="nam-pedal-get">Get captures from TONE3000...</button></p>
+  </div>
+  <form method="dialog"><button class="ghost">Close</button></form>
+</dialog>
+
 <!-- NAM captures from TONE3000 -->
 <dialog id="nam-dialog" class="page">
   <button type="button" class="page-back" data-close-dialog>&lsaquo; Back</button>
@@ -677,6 +696,7 @@
     <p><span id="t3k-status"></span> <button type="button" class="ghost" id="t3k-signin">Sign in to TONE3000</button> <button type="button" class="ghost" id="t3k-signout">Sign out</button></p>
     </div>
     <p class="hint" id="t3k-shared" hidden></p>
+    <p class="hint">Already have the packs on your pedal (from another computer)? You don't need to download them again: <button type="button" class="ghost small" id="nam-pedal-open2">Which NAMs are on my pedal?</button></p>
     <p><button type="button" class="primary" id="nam-starter">Install the starter library</button> <span class="hint">20 well-reviewed captures into IR slots 101-120 (docs/nam.md lists them).</span></p>
     <p><button type="button" class="ghost" id="nam-full-rig">Install the full-rig pack</button> <span class="hint">15 more captures that include their cab, into IR slots 121-135: no cab block needed, so they fit beside Poly Capo.</span></p>
     <form id="t3k-search-form" class="row">
@@ -790,7 +810,8 @@
       <label class="toggle" title="An off drive just before the amp, for Stage mode's Gain boost"><input type="checkbox" name="stage_boost"> Stage boost</label>
       <label class="toggle" data-nam-only hidden title="NAM rigs: use only captures that include their cab, so the chain needs no cab block. Handy when Poly Capo leaves no DSP for a cab."><input type="checkbox" name="full_rig"> Full-rig captures only (no cab)</label>
     </fieldset>
-    <div class="dsp-room" data-room></div>
+    <p class="nam-missing" data-nam-missing hidden>This computer doesn't know which NAM captures are on your pedal yet. <button type="button" class="ghost small" data-nam-pedal>Which NAMs are on my pedal?</button></p>
+        <div class="dsp-room" data-room></div>
     <label>Label <input name="label" placeholder="e.g. Les Paul live version"></label>
     <label>Extra instructions <input name="instructions"></label>
     <button class="primary" type="submit" id="fork-submit">Fork</button>

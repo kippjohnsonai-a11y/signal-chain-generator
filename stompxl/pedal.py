@@ -299,6 +299,62 @@ def read_preset(slot: int, *, bank: int = 0) -> dict[str, Any]:
                                         names.get(slot, "") or f"Slot {slot_label(slot)}")
 
 
+#: The name a slot shows when nothing has been saved there.
+EMPTY_NAMES = frozenset({"", "new preset"})
+
+
+def read_all(report: Callable[[str], None] = lambda _m: None, *, bank: int = 0
+             ) -> dict[int, tuple[str, dict[str, Any]]]:
+    """Every saved preset on the pedal as ``{slot: (name, .hlx-shaped dict)}``, in one session.
+
+    Read-only, like :func:`read_preset`, but nothing is archived: it's for looking
+    across the presets (which NAM captures they use), not for importing one.
+    A preset that won't read or convert is skipped, not fatal.
+    """
+    from stompxl.helixgen.device.document import parse
+    from stompxl.helixgen.device.hxedit import find_symbol_table
+    from stompxl.helixgen.device.symbols import DeviceSymbols
+    from stompxl.helixgen.device.usb import Session
+
+    from . import pedal_import
+
+    try:
+        symbols = DeviceSymbols.load(find_symbol_table(None))
+    except Exception as exc:
+        raise PedalError(
+            f"HX Edit's symbol table was not found ({exc}). Install HX Edit, then retry."
+        ) from exc
+    raws: dict[int, bytes] = {}
+    with _exclusive():
+        try:
+            with Session.open() as session:
+                names = _remember(_parse_listing(session.list_presets(bank=bank)))
+                filled = [s for s, n in sorted(names.items()) if n.strip().lower() not in EMPTY_NAMES]
+                for done, slot in enumerate(filled, 1):
+                    report(f"Reading preset {done} of {len(filled)}: {names[slot]}")
+                    try:
+                        raw = session.read_slot(bank=bank, slot=slot)
+                    except Exception as exc:
+                        if _timed_out(exc):
+                            raise
+                        logger.warning("Skipped slot %s while reading them all: %s", slot_label(slot), exc)
+                        continue
+                    if raw:
+                        raws[slot] = raw
+        except Exception as exc:
+            _log_trace("Reading every preset", exc)
+            hint = f". {NOT_ANSWERING}" if _timed_out(exc) else ""
+            raise PedalError(f"{exc}{hint}") from exc
+    found: dict[int, tuple[str, dict[str, Any]]] = {}
+    for slot, raw in raws.items():
+        name = names.get(slot, "") or f"Slot {slot_label(slot)}"
+        try:
+            found[slot] = (name, pedal_import.document_to_hlx(parse(raw), symbols, engine.catalog(), name))
+        except Exception as exc:  # noqa: BLE001 - one odd preset shouldn't stop the rest
+            logger.warning("Skipped slot %s: it didn't convert (%s)", slot_label(slot), exc)
+    return found
+
+
 def push(preset: dict[str, Any], slot: int, *, bank: int = 0,
          device_settings: dict[str, Any] | None = None) -> str:
     """Archive ``slot``, then write ``preset`` into it. Returns HelixGen's report."""
