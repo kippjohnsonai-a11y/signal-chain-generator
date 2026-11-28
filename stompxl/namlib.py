@@ -53,7 +53,8 @@ def nam_dir() -> Path:
 #: The ready-made packs, by name: see docs/nam.md.
 PACKS = {
     "starter": "nam_starter.json",    # slots 101-120, a mix of full rigs and amp-only
-    "full-rig": "nam_full_rig.json",  # slots 121 up, full rigs only (no cab block needed)
+    "full-rig": "nam_full_rig.json",  # slots 121-128 and 44-50, full rigs only (no cab block needed)
+    "extended": "nam_extended.json",  # slots 51-100, 50 more across styles, some with a pedal in front
 }
 
 
@@ -160,12 +161,24 @@ def _list(capture: dict[str, Any]) -> None:
 # presets, with nothing downloaded or sent.
 
 #: What the app calls each pack, for people.
-PACK_TITLES = {"starter": "Starter pack", "full-rig": "Full-rig pack"}
+PACK_TITLES = {"starter": "Starter pack", "full-rig": "Full-rig pack", "extended": "Extended pack"}
 
 
 def _is_listed(entry: dict[str, Any], captures: list[dict[str, Any]]) -> bool:
     return any(c["slot"] == entry["slot"] and c["name"].lower() == entry["name"].lower()
                for c in captures)
+
+
+def slot_ranges(slots: list[int]) -> str:
+    """IR slots for people, in pack order: "51-100", "121-128 and 44-50"."""
+    runs: list[list[int]] = []
+    for slot in slots:
+        if runs and slot == runs[-1][-1] + 1:
+            runs[-1].append(slot)
+        else:
+            runs.append([slot])
+    parts = [f"{r[0]}-{r[-1]}" if len(r) > 1 else str(r[0]) for r in runs]
+    return ", ".join(parts[:-1]) + " and " + parts[-1] if len(parts) > 1 else parts[0]
 
 
 def pack_status(settings: dict[str, Any] | None = None) -> list[dict[str, Any]]:
@@ -177,7 +190,7 @@ def pack_status(settings: dict[str, Any] | None = None) -> list[dict[str, Any]]:
         entries = pack(name)
         slots = [e["slot"] for e in entries]
         out.append({"name": name, "title": PACK_TITLES.get(name, name), "count": len(entries),
-                    "first_slot": min(slots), "last_slot": max(slots),
+                    "first_slot": min(slots), "last_slot": max(slots), "slots_text": slot_ranges(slots),
                     "listed": sum(_is_listed(e, captures) for e in entries)})
     return out
 

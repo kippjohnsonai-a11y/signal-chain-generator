@@ -2776,6 +2776,7 @@ async function runNamJob(path, body) {
 
 $("#nam-starter").addEventListener("click", () => runNamJob("/api/nam/starter"));
 $("#nam-full-rig").addEventListener("click", () => runNamJob("/api/nam/pack/full-rig"));
+$("#nam-extended").addEventListener("click", () => runNamJob("/api/nam/pack/extended"));
 
 $("#nam-add-form").addEventListener("submit", async (e) => {
   e.preventDefault();
@@ -2949,7 +2950,7 @@ const NO_CAPTURES_RE = /know which NAM captures are on your pedal/;
 let namPedalThen = null;
 
 function packLine(p) {
-  const slots = `IR slots ${p.first_slot}-${p.last_slot}`;
+  const slots = `IR slots ${p.slots_text || `${p.first_slot}-${p.last_slot}`}`;
   const status = p.listed === p.count ? "listed on this computer ✓"
     : p.listed ? `${p.listed} of ${p.count} listed on this computer` : "not listed on this computer";
   return `${p.title}: ${p.count} captures in ${slots}, ${status}`;

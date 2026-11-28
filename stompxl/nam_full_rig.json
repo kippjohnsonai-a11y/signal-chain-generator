@@ -1,5 +1,5 @@
 {
- "about": "The full-rig NAM pack: 15 TONE3000 A2 captures that include their cab (no cab block needed, for presets where Poly Capo leaves no DSP for one), User IR slots 121-135. Fills the starter library's amp-only gaps (Plexi, JTM45, Hiwatt, Mark, Friedman, Soldano, Orange, Dumble, Super Reverb/Bassman) plus Matchless, Bogner and Princeton. Picked 2026-11-09 by downloads and favorites; every page shows Amp + Cab.",
+ "about": "The full-rig NAM pack: 15 TONE3000 A2 captures that include their cab (no cab block needed, for presets where Poly Capo leaves no DSP for one), User IR slots 121-128 and 44-50 (the pedal has 128 IR slots). Fills the starter library's amp-only gaps (Plexi, JTM45, Hiwatt, Mark, Friedman, Soldano, Orange, Dumble, Super Reverb/Bassman) plus Matchless, Bogner and Princeton. Picked 2026-11-09 by downloads and favorites; every page shows Amp + Cab.",
  "captures": [
   {
    "slot": 121,
@@ -66,7 +66,7 @@
    "model": "Full Rig L"
   },
   {
-   "slot": 129,
+   "slot": 44,
    "tone": 72478,
    "name": "Dumble Clean",
    "description": "1974 Dumble Overdrive Special #124 clean into a 2x12 with G12Ms; Robben Ford, Mayer, jazz cleans",
@@ -74,7 +74,7 @@
    "model": "DUMBLE ODS 124 CH NORMAL JAZZ CLEAN"
   },
   {
-   "slot": 130,
+   "slot": 45,
    "tone": 72478,
    "name": "Dumble Lead",
    "description": "1974 Dumble Overdrive Special #124 lead channel; SRV, Robben Ford, smooth singing overdrive",
@@ -82,7 +82,7 @@
    "model": "DUMBLE ODS 124 HI-GAIN LEAD"
   },
   {
-   "slot": 131,
+   "slot": 46,
    "tone": 88724,
    "name": "Super Lead",
    "description": "Fender '65 Super Reverb pushed to lead, EV speakers; SRV, blues lead",
@@ -90,7 +90,7 @@
    "model": "FDR SR65 CAB Lead"
   },
   {
-   "slot": 132,
+   "slot": 47,
    "tone": 48876,
    "name": "62 Bassman",
    "description": "1962 Fender Blonde Bassman crunch, blended 2x12; Chicago blues, roots rock",
@@ -98,7 +98,7 @@
    "model": "SV 62 BSMN CAB B V10 T8 B10"
   },
   {
-   "slot": 133,
+   "slot": 48,
    "tone": 71316,
    "name": "Matchless DC30",
    "description": "Matchless DC-30 edge of breakup, Greenbacks; boutique chime, Brit-pop, country rock",
@@ -106,7 +106,7 @@
    "model": "MATCH DC-30 EDGE BRI"
   },
   {
-   "slot": 134,
+   "slot": 49,
    "tone": 69305,
    "name": "Bogner XT",
    "description": "Bogner Ecstasy 101B channel 3; plexi-style crunch to high gain, Steve Stevens, modern rock lead",
@@ -114,7 +114,7 @@
    "model": "BOG XT III Gain BRI3 CAB"
   },
   {
-   "slot": 135,
+   "slot": 50,
    "tone": 2381,
    "name": "Princeton",
    "description": "Firebelly PR3512SE (modded Princeton) full rig; small-amp clean to edge, studio country and pop",

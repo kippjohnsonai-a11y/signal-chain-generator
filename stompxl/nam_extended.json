@@ -1,0 +1,405 @@
+{
+ "about": "The extended NAM pack: 50 well-reviewed TONE3000 A2 captures for User IR slots 51-100, picked 2026-11-28 by downloads, favorites and comments across styles from sparkling cleans to modern metal, a few with a Klon, Tube Screamer or Fuzz Face in front. Each was checked to have A2 models; 'model' names the one used from packs that hold several.",
+ "captures": [
+  {
+   "slot": 51,
+   "tone": 4658,
+   "name": "Two-Rock SSS",
+   "description": "Two-Rock Signature (SSS) clean; John Mayer, glassy modern country and worship cleans",
+   "cab": false,
+   "model": ""
+  },
+  {
+   "slot": 52,
+   "tone": 29285,
+   "name": "Dumble SSS",
+   "description": "Dumble Steel String Singer clean; huge-headroom SRV and Mayer cleans, jazz",
+   "cab": false,
+   "model": "Dumble Steel SS Clean"
+  },
+  {
+   "slot": 53,
+   "tone": 86614,
+   "name": "Two-Rock Klon",
+   "description": "Two-Rock CRS and Bad Cat Era 30 together, boosted by a Klon; lush edge-of-breakup lead, worship, blues",
+   "cab": true,
+   "model": ""
+  },
+  {
+   "slot": 54,
+   "tone": 81032,
+   "name": "Vibrolux",
+   "description": "Fender Custom Vibrolux Reverb 2x10; sparkly blackface clean, surf, indie, country",
+   "cab": true,
+   "model": "Fender Custom Vibrolux 90s, Vol 2.7, Treb 5.5, Bass 6.2 e906"
+  },
+  {
+   "slot": 55,
+   "tone": 6532,
+   "name": "Princeton SF",
+   "description": "1976 Fender Princeton Reverb silverface; small-amp studio clean, Americana, Jason Isbell",
+   "cab": true,
+   "model": ""
+  },
+  {
+   "slot": 56,
+   "tone": 6681,
+   "name": "Tone King",
+   "description": "Tone King Imperial MKII rhythm channel; warm boutique Fender-style clean to breakup, country, soul",
+   "cab": false,
+   "model": "Tone King Imperial RH V5 T5 B5"
+  },
+  {
+   "slot": 57,
+   "tone": 79132,
+   "name": "Magnatone",
+   "description": "1966 Magnatone M10A crunch; vibrato-era grit, Buddy Holly, Lonnie Mack, roots rock",
+   "cab": true,
+   "model": ""
+  },
+  {
+   "slot": 58,
+   "tone": 50635,
+   "name": "Lone Star",
+   "description": "Mesa Lone Star Classic drive channel; smooth boutique overdrive, country rock, blues lead",
+   "cab": true,
+   "model": ""
+  },
+  {
+   "slot": 59,
+   "tone": 43185,
+   "name": "Deluxe Klon",
+   "description": "Fender '65 Deluxe Reverb boosted by a Klon; transparent overdrive, blues and alt-country lead",
+   "cab": true,
+   "model": "Fender Deluxe Reverb - V5, T6, B4, Klon Gain 10, SM57 - Standard"
+  },
+  {
+   "slot": 60,
+   "tone": 27135,
+   "name": "Blues Junior",
+   "description": "Fender Blues Junior III; the classic pub-gig combo, light crunch, blues, classic covers",
+   "cab": true,
+   "model": "Fender Blues Junior III (Vol 5 Bass 6 Mids 8 Treble 5 Master 5)"
+  },
+  {
+   "slot": 61,
+   "tone": 13857,
+   "name": "Hot Rod Dlx",
+   "description": "2015 Fender Hot Rod Deluxe, vintage channel sweet spot; bar-band clean to crunch, 90s alt",
+   "cab": false,
+   "model": "15 Hot Rod Deluxe - Vintage Sweet Spot - Bright - V5 T5 B4 M4 P3, bright switch"
+  },
+  {
+   "slot": 62,
+   "tone": 29303,
+   "name": "Supro 1605",
+   "description": "Supro 1605R Reverb, gritty; Jimmy Page studio tone, garage and blues rock, The Black Keys",
+   "cab": false,
+   "model": "NAMM CAPTURE SET UP_2 #57Supro Gritty full combo 57"
+  },
+  {
+   "slot": 63,
+   "tone": 2754,
+   "name": "Benson",
+   "description": "Benson Chimera edge of breakup; boutique blackface-style clean, indie, worship",
+   "cab": false,
+   "model": ""
+  },
+  {
+   "slot": 64,
+   "tone": 53593,
+   "name": "Dr Z Ghia",
+   "description": "Dr. Z Carmen Ghia 18W; Brad Paisley-style chime and crunch, country, roots rock",
+   "cab": false,
+   "model": "Dr. Z Carmen Ghia 18 Watt Combo | DI Capture | Tone 12 | Volume 12"
+  },
+  {
+   "slot": 65,
+   "tone": 82521,
+   "name": "AC30 Edge",
+   "description": "1964 Vox AC30 Top Boost, edge of breakup; jangle, The Beatles, Tom Petty, R.E.M.",
+   "cab": true,
+   "model": ""
+  },
+  {
+   "slot": 66,
+   "tone": 1080,
+   "name": "AC15",
+   "description": "Vox AC15 top boost, edge of breakup; chimey Britpop, indie, Radiohead, Oasis cleans",
+   "cab": false,
+   "model": "Vox AC15CH Edge of Breakup TB"
+  },
+  {
+   "slot": 67,
+   "tone": 66547,
+   "name": "AC50",
+   "description": "1964 Vox AC50 Mk I clean and bright; early British Invasion, The Beatles, The Shadows",
+   "cab": true,
+   "model": ""
+  },
+  {
+   "slot": 68,
+   "tone": 30122,
+   "name": "Bad Cat Lynx",
+   "description": "Bad Cat Lynx; class-A chime to crunch, modern indie, worship",
+   "cab": false,
+   "model": ""
+  },
+  {
+   "slot": 69,
+   "tone": 1626,
+   "name": "Bluesbreaker",
+   "description": "Marshall 1962 Bluesbreaker combo; Clapton Beano tone, blues rock, Cream",
+   "cab": true,
+   "model": ""
+  },
+  {
+   "slot": 70,
+   "tone": 65578,
+   "name": "JMP50 Plexi",
+   "description": "1969 Marshall JMP-50 lead plexi crunch, full rig; Led Zeppelin, AC/DC, classic rock rhythm",
+   "cab": true,
+   "model": ""
+  },
+  {
+   "slot": 71,
+   "tone": 80590,
+   "name": "Super Bass",
+   "description": "1967 Marshall Super Bass crunch; Hendrix, Sabbath, fat 60s plexi grind",
+   "cab": true,
+   "model": ""
+  },
+  {
+   "slot": 72,
+   "tone": 53491,
+   "name": "Brown Sound",
+   "description": "JTM50-style amp dialled for Van Halen I; brown sound, 80s rock rhythm and lead",
+   "cab": false,
+   "model": "JTM50 Replica - Van Halen I Tones V7"
+  },
+  {
+   "slot": 73,
+   "tone": 44095,
+   "name": "EJ Plexi Fuzz",
+   "description": "Plexi with a TS808 and Fuzz Face in front; Eric Johnson violin lead, fuzzy classic rock solos",
+   "cab": true,
+   "model": ""
+  },
+  {
+   "slot": 74,
+   "tone": 45684,
+   "name": "JCM900",
+   "description": "Marshall JCM900 4100 with a TS808; 90s hard rock and grunge, Slash, Zakk Wylde, Pearl Jam",
+   "cab": false,
+   "model": "MARSHALL JCM900 RHYTHM TS808 09"
+  },
+  {
+   "slot": 75,
+   "tone": 35841,
+   "name": "Twin JBL",
+   "description": "1976 Fender Twin Reverb silverface with JBL D120Fs, full rig; huge glassy clean, funk, country, Steely Dan",
+   "cab": true,
+   "model": "Fender Twin Reverb Clean VB BR ON V4.7 T4 M6.8 B3 MV2.5 "
+  },
+  {
+   "slot": 76,
+   "tone": 700,
+   "name": "JCM2000 DSL",
+   "description": "Marshall JCM2000 DSL crunch; 2000s rock, Joe Bonamassa, Kirk Hammett rhythm, pop punk",
+   "cab": false,
+   "model": "Tim R JCM2000 Crunch"
+  },
+  {
+   "slot": 77,
+   "tone": 78495,
+   "name": "JVM410",
+   "description": "Marshall JVM410H OD1 channel; modern Marshall rock, Satriani, Foo Fighters, Nickelback",
+   "cab": false,
+   "model": "JVM OD1 Org"
+  },
+  {
+   "slot": 78,
+   "tone": 75184,
+   "name": "JCM800 Klon",
+   "description": "JCM800 2203X pushed by a Klon; hard rock and 80s metal rhythm, Guns N' Roses, AC/DC heavy",
+   "cab": false,
+   "model": "JCM800 2203X + Centavo Klon (modded) - heavy crunch"
+  },
+  {
+   "slot": 79,
+   "tone": 6124,
+   "name": "Quick Rod",
+   "description": "Splawn Quick Rod; hot-rodded Marshall, Nickelback, modern hard rock and country rock",
+   "cab": false,
+   "model": "QR 01"
+  },
+  {
+   "slot": 80,
+   "tone": 692,
+   "name": "Dirty Shirley",
+   "description": "Friedman Dirty Shirley Mini crunch; boosted plexi grind, classic and alt rock, Dave Friedman",
+   "cab": false,
+   "model": "DirtyShirleyMini_crunch_G6"
+  },
+  {
+   "slot": 81,
+   "tone": 40858,
+   "name": "Nu Metal Duo",
+   "description": "Mesa Dual Rectifier and Marshall JCM800 blended, full rig; Linkin Park Meteora, 2000s nu-metal and alt metal",
+   "cab": true,
+   "model": "METEORA_LINKIN PARK ( R and L mix)"
+  },
+  {
+   "slot": 82,
+   "tone": 29044,
+   "name": "Orange AD30",
+   "description": "Orange AD30HTC crunch; British indie and stoner rock, Arctic Monkeys, Oasis",
+   "cab": false,
+   "model": "AD30HTC_II_Crunch_DI (cali)"
+  },
+  {
+   "slot": 83,
+   "tone": 5139,
+   "name": "TriAmp",
+   "description": "Hughes & Kettner TriAmp MK II full rig; 90s/2000s rock, Alex Lifeson, versatile crunch",
+   "cab": true,
+   "model": ""
+  },
+  {
+   "slot": 84,
+   "tone": 63292,
+   "name": "Revv G120",
+   "description": "Revv Generator 120 MKIII EL34 red channel; modern rock and metal, tight and articulate",
+   "cab": false,
+   "model": "REVV_G120MKIII_EL34_RED_AG_0_FAT_PRDRIVE"
+  },
+  {
+   "slot": 85,
+   "tone": 68501,
+   "name": "Matamp GT1",
+   "description": "Matamp GT1 mkIII; doom and stoner fuzz-like grind, Sleep, Electric Wizard",
+   "cab": false,
+   "model": "Voice 3 Gain 10 Bass 10 Mid 7 Treble 6.5 Presence 6 Master 4"
+  },
+  {
+   "slot": 86,
+   "tone": 2315,
+   "name": "Bogner Shiva",
+   "description": "Bogner Shiva channel 2 boosted, full rig; boutique hard rock lead, Mark Tremonti",
+   "cab": true,
+   "model": ""
+  },
+  {
+   "slot": 87,
+   "tone": 106343,
+   "name": "Recto OD808",
+   "description": "Mesa Dual Rectifier Rev F red channel with an OD808, full rig; nu-metal and metalcore, Korn, Metallica Black Album",
+   "cab": true,
+   "model": ""
+  },
+  {
+   "slot": 88,
+   "tone": 73217,
+   "name": "Triple Recto",
+   "description": "Mesa Triple Rectifier red channel, boosted, full rig; modern metal, Mastodon, Linkin Park",
+   "cab": true,
+   "model": ""
+  },
+  {
+   "slot": 89,
+   "tone": 1686,
+   "name": "JP-2C",
+   "description": "Mesa JP-2C channel 3; John Petrucci, prog metal rhythm and lead",
+   "cab": false,
+   "model": "JP2C Capture 1 CH3 G8 T7 M4 B2 P4 - Emil Rohbe"
+  },
+  {
+   "slot": 90,
+   "tone": 1625,
+   "name": "Mark V",
+   "description": "Mesa Mark V lead, full rig; singing Boogie lead, Petrucci, Santana-style sustain",
+   "cab": true,
+   "model": "Lead"
+  },
+  {
+   "slot": 91,
+   "tone": 36890,
+   "name": "Mark III",
+   "description": "Mesa Mark III high gain; 80s thrash, Metallica Master of Puppets, Dream Theater",
+   "cab": false,
+   "model": "SLAMMIN_MESA_MK3_ L_METAL_HG_MV2_P0_MV_S"
+  },
+  {
+   "slot": 92,
+   "tone": 79751,
+   "name": "Uberschall",
+   "description": "Bogner Uberschall; crushing modern metal, Tremonti, djent and drop tunings",
+   "cab": false,
+   "model": "[AMP] UBER.BLUE-Mar412-LEAD Noon - DI"
+  },
+  {
+   "slot": 93,
+   "tone": 205,
+   "name": "5150 III",
+   "description": "EVH 5150 III 6L6 red channel, boosted; modern Van Halen, metalcore, hard rock",
+   "cab": false,
+   "model": ""
+  },
+  {
+   "slot": 94,
+   "tone": 82317,
+   "name": "5150 Block",
+   "description": "1992 Peavey 5150 block letter, full rig; 90s metal, Killswitch Engage, Trivium",
+   "cab": true,
+   "model": "1992 Peavey 5150 Block Letter | Mesa Recto 212 V30 Full Rig (@vivahatex)"
+  },
+  {
+   "slot": 95,
+   "tone": 479,
+   "name": "Diezel VH4",
+   "description": "Diezel VH4 channel 3; Metallica St. Anger to Tool, tight German high gain",
+   "cab": false,
+   "model": "DiezelVH4-CH3"
+  },
+  {
+   "slot": 96,
+   "tone": 481,
+   "name": "Herbert",
+   "description": "Diezel Herbert channel 2 crunch; Tool, Adam Jones, heavy rock rhythm",
+   "cab": false,
+   "model": "Herbert ch2- crunch"
+  },
+  {
+   "slot": 97,
+   "tone": 97563,
+   "name": "ENGL Savage",
+   "description": "ENGL Savage 120 lead; European metal, Children of Bodom, power and melodic metal",
+   "cab": false,
+   "model": "Engl Savage 120 mkI - Lead (contour in)"
+  },
+  {
+   "slot": 98,
+   "tone": 71854,
+   "name": "Victory MKX",
+   "description": "Victory MKX; modern British high gain, Rabea Massaad, djent and progressive rock",
+   "cab": false,
+   "model": "Victory MKX Gain 1"
+  },
+  {
+   "slot": 99,
+   "tone": 66260,
+   "name": "Evil Pumpkin",
+   "description": "Fortin Evil Pumpkin; Jason Richardson, tech metal and djent rhythm",
+   "cab": false,
+   "model": "[AMP] FRTN.EVL.PMPKN-Mes4x12-KK Jason's Settings - DI"
+  },
+  {
+   "slot": 100,
+   "tone": 1621,
+   "name": "Meshuggah",
+   "description": "Fortin Meshuggah plexi, full rig; extended-range djent, Meshuggah, Periphery",
+   "cab": true,
+   "model": "Fortin Meshuggah 1"
+  }
+ ]
+}
