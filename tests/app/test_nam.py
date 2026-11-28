@@ -403,7 +403,7 @@ def test_saying_a_pack_is_on_the_pedal_lists_it_without_downloading():
 
     config.write_settings({"nam_captures": [{"name": "Mine", "slot": 101, "description": "", "cab": False},
                                             {"name": "Twin Clean", "slot": None}]})
-    assert [p["listed"] for p in namlib.pack_status()] == [0, 0]
+    assert [p["listed"] for p in namlib.pack_status()] == [0, 0, 0]
     captures = namlib.mark_on_pedal(["starter"])
     starter = namlib.pack("starter")
     # The pack's slot 101 capture replaces "Mine" there; the computer-only one stays.
@@ -446,7 +446,7 @@ def test_generating_nam_on_the_pedal_with_nothing_listed_asks_which_are_on_it(tm
     lib = Library(tmp_path / "lib.sqlite3")
     client = TestClient(create_app(lib, caller_factory=lambda: NamClaude(["Scream 808"], "Tweed Deluxe")))
     state = client.get("/api/state").json()
-    assert [p["listed"] for p in state["settings"]["nam_packs"]] == [0, 0]
+    assert [p["listed"] for p in state["settings"]["nam_packs"]] == [0, 0, 0]
     guitar = client.post("/api/guitars", json={"name": "Strat", "pickups": "SSS"}).json()["id"]
     rig = next(r["id"] for r in state["rigs"] if r["kind"] == "nam_pedal")
     body = {"song": "x", "guitar_id": guitar, "rig_id": rig}
@@ -462,3 +462,22 @@ def test_generating_nam_on_the_pedal_with_nothing_listed_asks_which_are_on_it(tm
     done = _wait(client, client.post("/api/generate", json=body).json()["job_id"])
     version = client.get(f"/api/versions/{done['version_id']}").json()
     assert version["view"]["nam"]["capture"]["name"] == "Tweed Deluxe"
+
+
+def test_every_pack_fits_the_pedals_ir_slots_without_overlapping():
+    from stompxl import namlib
+
+    taken: dict[int, str] = {}
+    for name in namlib.PACKS:
+        for entry in namlib.pack(name):
+            assert 1 <= entry["slot"] <= xl.IR_SLOTS, (name, entry)
+            assert entry["slot"] not in taken, (name, entry, taken.get(entry["slot"]))
+            taken[entry["slot"]] = name
+    assert namlib.slot_ranges([121, 122, 123, 44, 45]) == "121-123 and 44-45"
+    assert namlib.slot_ranges([51, 52, 53]) == "51-53"
+    status = {p["name"]: p for p in namlib.pack_status({})}
+    assert status["full-rig"]["slots_text"] == "121-128 and 44-50"
+    assert status["extended"]["slots_text"] == "51-100" and status["extended"]["count"] == 50
+    # Names stay short enough that HX Edit's 16 characters keep the slot and the name.
+    assert all(len(namlib.wav_name(e["slot"], e["name"])) - 4 == len(f"{e['slot']} {e['name']}")
+               for e in namlib.pack("extended"))

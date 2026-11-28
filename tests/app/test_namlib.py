@@ -106,6 +106,9 @@ def test_the_starter_library_fills_slots_101_to_120():
     assert len({e["tone"] for e in entries}) == 20
     assert all(isinstance(e["tone"], int) and e["name"] and e["description"] for e in entries)
     assert all(len(namlib.wav_name(e["slot"], e["name"])) <= 20 for e in entries)
+    # A capture of the same name replaces another, so no two packs may share one.
+    everything = [e for name in namlib.PACKS for e in namlib.pack(name)]
+    assert len({e["name"].lower() for e in everything}) == len(everything) == 85
 
 
 def test_the_converter_runs_as_its_own_program(tmp_path, monkeypatch):
@@ -279,13 +282,17 @@ def test_a_download_keeps_the_token_off_the_storage_redirect(monkeypatch):
         server.shutdown()
 
 
-def test_the_full_rig_pack_fills_slots_121_up_with_captures_that_include_their_cab():
+def test_the_full_rig_pack_fills_slots_121_to_128_and_44_to_50_with_captures_that_include_their_cab():
     entries = namlib.pack("full-rig")
-    assert [e["slot"] for e in entries] == list(range(121, 121 + len(entries)))
+    # The pedal has 128 IR slots, so the last seven sit below the extended pack.
+    assert [e["slot"] for e in entries] == list(range(121, 129)) + list(range(44, 51))
     assert all(e["cab"] is True and isinstance(e["tone"], int) and e["name"] for e in entries)
     starter_slots = {e["slot"] for e in namlib.starter()}
     assert not starter_slots & {e["slot"] for e in entries}
     assert len({e["name"].lower() for e in entries + namlib.starter()}) == len(entries) + 20
     assert all(len(namlib.wav_name(e["slot"], e["name"])) <= 20 for e in entries)
+    # A capture of the same name replaces another, so no two packs may share one.
+    everything = [e for name in namlib.PACKS for e in namlib.pack(name)]
+    assert len({e["name"].lower() for e in everything}) == len(everything) == 85
     with pytest.raises(ValueError, match="No pack"):
         namlib.pack("nope")
