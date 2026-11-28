@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "signal-chain-generator"
-version = "0.2.1"
+version = "0.2.2"
 description = "Type a song, pick a guitar, get a dialled-in HX Stomp XL preset - pushed straight to the pedal."
 readme = "README.md"
 requires-python = ">=3.13"
